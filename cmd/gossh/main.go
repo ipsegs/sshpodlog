@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -42,7 +42,7 @@ func main() {
 	config := &ssh.ClientConfig{
 		User: *username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(string(password)), 
+			ssh.Password(string(password)),
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -88,10 +88,10 @@ func main() {
 	}
 	defer newSession.Close()
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
-	//podLog, err := newSession.CombinedOutput(getPodLogs)
-	//if err != nil {
-	//		log.Fatal("Failed to run second command in second ssh connection", err)
-	//	}
+	// podLog, err := newSession.CombinedOutput(getPodLogs)
+	// if err != nil {
+	// 	log.Fatal("Failed to run second command in second ssh connection", err)
+	// }
 	stdout, err := newSession.StdoutPipe()
 	if err != nil {
 		log.Fatalf("Failed to create stdout pipe: %v", err)
@@ -102,17 +102,9 @@ func main() {
 		log.Fatalf("Failed to start command execution: %v", err)
 	}
 
-	var podLog []byte
-	buf := make([]byte, 4096)
-	for {
-		n, err := stdout.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				log.Fatalf("Failed to read command output: %v", err)
-			}
-			break
-		}
-		podLog = append(podLog, buf[:n]...)
+	podLog, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		log.Fatalf("Failed to read command output: %v", err)
 	}
 
 	err = newSession.Wait()
