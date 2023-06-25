@@ -19,7 +19,7 @@ func main() {
 
 	server := flag.String("server", "", "<usage> -server <ip address or hostname>")
 	port := flag.Int("port", 22, "<usage -port <port number>")
-	username := flag.String("username", "", "<usege -username <username>")
+	username := flag.String("username", "", "<usage> -username <username>")
 	flag.Parse()
 
 	if *server == "" {
@@ -78,13 +78,13 @@ func main() {
 	fmt.Print("Enter pod name: ")
 	podName, err := readInput()
 	if err != nil {
-		log.Fatalf("pod does not exist: %v", err)
+		log.Fatalf("Pod does not exist: %v", err)
 	}
 	session.Close()
 
 	newSession, err := conn.NewSession()
 	if err != nil {
-		log.Fatalf("Unable to create second ssh connection: %v", err)
+		log.Fatalf("Unable to create second session connection: %v", err)
 	}
 	defer newSession.Close()
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
@@ -105,7 +105,7 @@ func main() {
 		n, err := io.ReadFull(stdout, buf)
 		if err != nil {
 			if err != io.ErrUnexpectedEOF && err != io.EOF {
-				log.Fatalf("Failed to read the contenti: %v", err)
+				log.Fatalf("Failed to read command output: %v", err)
 			}
 			break
 		}
