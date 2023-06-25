@@ -19,11 +19,11 @@ func main() {
 
 	server := flag.String("server", "", "<usage> -server <ip address or hostname>")
 	port := flag.Int("port", 22, "<usage -port <port number>")
-	username := flag.String("username", "", "<usage> -username <username>")
+	username := flag.String("username", "", "<usege -username <username>")
 	flag.Parse()
 
 	if *server == "" {
-		log.Fatal("Usage: -server <ip address>")
+		log.Fatal("Usage: -server <ip address>  ")
 		return
 	}
 
@@ -42,7 +42,7 @@ func main() {
 	config := &ssh.ClientConfig{
 		User: *username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(string(password)),
+			ssh.Password(string(password)), 
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -78,33 +78,36 @@ func main() {
 	fmt.Print("Enter pod name: ")
 	podName, err := readInput()
 	if err != nil {
-		log.Fatalf("Pod does not exist: %v", err)
+		log.Fatalf("pod does not exist: %v", err)
 	}
 	session.Close()
 
 	newSession, err := conn.NewSession()
 	if err != nil {
-		log.Fatalf("Unable to create second session connection: %v", err)
+		log.Fatalf("Unable to create second ssh connection: %v", err)
 	}
 	defer newSession.Close()
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
-
+	//podLog, err := newSession.CombinedOutput(getPodLogs)
+	//if err != nil {
+	//		log.Fatal("Failed to run second command in second ssh connection", err)
+	//	}
 	stdout, err := newSession.StdoutPipe()
 	if err != nil {
-		log.Fatalf("Failed to create standard output pipe: %v", err)
+		log.Fatalf("Failed to create stdout pipe: %v", err)
 	}
 
 	err = newSession.Start(getPodLogs)
 	if err != nil {
-		log.Fatalf("Failed to start the session command execution: %v", err)
+		log.Fatalf("Failed to start command execution: %v", err)
 	}
 
 	var podLog []byte
 	buf := make([]byte, 4096)
 	for {
-		n, err := io.ReadFull(stdout, buf)
-		if err != nil {
-			if err != io.ErrUnexpectedEOF && err != io.EOF {
+		n, err := stdout.Read(buf)
+		if err !=nil {
+			if err != io.EOF {
 				log.Fatalf("Failed to read command output: %v", err)
 			}
 			break
