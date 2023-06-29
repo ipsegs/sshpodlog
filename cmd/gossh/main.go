@@ -166,7 +166,8 @@ func main() {
 	}
 
 	bar.Finish()
-	fmt.Printf("Copied %d bytes.\n", fileSize)
+	filesizeToKb := float64(fileSize/1024)
+	fmt.Printf("Copied %.2f kilobytes content.\n", filesizeToKb)
 }
 
 func readPassword() ([]byte, error) {
