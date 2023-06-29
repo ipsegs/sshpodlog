@@ -7,23 +7,27 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/pkg/sftp"
+	"github.com/schollz/progressbar/v3"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 )
 
 func main() {
-
 	server := flag.String("server", "", "<usage> -server <ip address or hostname>")
 	port := flag.Int("port", 22, "<usage -port <port number>")
 	username := flag.String("username", "", "<usege -username <username>")
+	kubectlClusterSwitch := flag.String("cluster", "default", "usage -context <cluster>")
 	flag.Parse()
 
 	if *server == "" {
-		log.Fatal("Usage: -server <ip address>  ")
+		log.Fatal("Usage: -server <ip address>")
 		return
 	}
 
@@ -35,14 +39,14 @@ func main() {
 	fmt.Print("Enter Password: ")
 	password, _ := readPassword()
 	if password == nil {
-		log.Fatalf("Please Enter a password\n")
+		log.Fatalf("Please enter a password\n")
 		return
 	}
 
 	config := &ssh.ClientConfig{
 		User: *username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(string(password)), 
+			ssh.Password(string(password)),
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -58,74 +62,119 @@ func main() {
 	session, err := conn.NewSession()
 	if err != nil {
 		log.Fatalf("Error: SSH session failed %v", err)
+		return
 	}
 	defer session.Close()
 
 	fmt.Print("Namespace: ")
 	namespace, err := readInput()
 	if err != nil {
-		log.Fatalf("namespace does not exist: %v", err)
+		log.Fatalf("Namespace does not exist: %v", err)
 		return
 	}
+
+	contextSwitch := fmt.Sprintf("kubectl config use-context %s", *kubectlClusterSwitch)
+	session.Output(contextSwitch)
+	fmt.Printf("Context has been switched to %s\n", *kubectlClusterSwitch)
+
+	session, err = conn.NewSession()
+	if err != nil {
+		log.Fatalf("Error: SSH session failed %v", err)
+		return
+	}
+	defer session.Close()
 
 	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
 	podList, err := session.Output(listPods)
 	if err != nil {
-		log.Fatalf("command failed to run in SSH Session: %v", err)
+		log.Fatalf("Command failed to run in SSH Session: %v", err)
 	}
 	fmt.Println(string(podList))
 
 	fmt.Print("Enter pod name: ")
 	podName, err := readInput()
 	if err != nil {
-		log.Fatalf("pod does not exist: %v", err)
+		log.Fatalf("Pod does not exist: %v", err)
 	}
 	session.Close()
 
 	newSession, err := conn.NewSession()
 	if err != nil {
-		log.Fatalf("Unable to create second ssh connection: %v", err)
+		log.Fatalf("Unable to create second SSH connection: %v", err)
 	}
 	defer newSession.Close()
-	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
-	//podLog, err := newSession.CombinedOutput(getPodLogs)
-	//if err != nil {
-	//		log.Fatal("Failed to run second command in second ssh connection", err)
-	//	}
-	stdout, err := newSession.StdoutPipe()
+	logFileName := podName + ".txt"
+	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
+	_, err = newSession.CombinedOutput(getPodLogs)
 	if err != nil {
-		log.Fatalf("Failed to create stdout pipe: %v", err)
+		log.Fatal("Failed to run second command in second SSH connection", err)
 	}
 
-	err = newSession.Start(getPodLogs)
+	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
-		log.Fatalf("Failed to start command execution: %v", err)
+		log.Println("Failed to create SFTP client:", err)
+		return
 	}
+	defer sftpClient.Close()
 
-	var podLog []byte
-	buf := make([]byte, 4096)
-	for {
-		n, err := stdout.Read(buf)
-		if err !=nil {
-			if err != io.EOF {
-				log.Fatalf("Failed to read command output: %v", err)
-			}
-			break
+	var homeDir string
+	if runtime.GOOS == "windows" {
+		homeDrive := os.Getenv("HOMEDRIVE")
+		homePath := os.Getenv("HOMEPATH")
+		homeDir = filepath.Join(homeDrive, homePath)
+	} else {
+		homeDir, err = os.UserHomeDir()
+		if err != nil {
+			log.Fatalf("Failed to get user's home directory: %v", err)
 		}
-		podLog = append(podLog, buf[:n]...)
 	}
 
-	err = newSession.Wait()
+	var localFilePath string
+	if runtime.GOOS == "windows" {
+		downloadFolder := filepath.Join(homeDir, "Downloads")
+		localFilePath = filepath.Join(downloadFolder, logFileName)
+	} else {
+		localFilePath = filepath.Join(homeDir, logFileName)
+	}
+	fmt.Println("Location of file on local directory", localFilePath)
+
+	remoteFile, err := sftpClient.Open(logFileName)
 	if err != nil {
-		log.Fatalf("Command execution failed: %v", err)
+		log.Println("Failed to open remote file:", err)
+		return
+	}
+	defer remoteFile.Close()
+
+	localFile, err := os.Create(localFilePath)
+	if err != nil {
+		log.Println("Failed to create the local file:", err)
+		return
+	}
+	defer localFile.Close()
+
+	// Get the file size
+	remoteFileInfo, _ := remoteFile.Stat()
+	fileSize := remoteFileInfo.Size()
+
+	// Create a progress bar
+	bar := progressbar.DefaultBytes(fileSize, "copying")
+
+	_, err = io.Copy(localFile, remoteFile)
+	if err != nil {
+		log.Println("Error copying file:", err)
+		return
 	}
 
-	fmt.Println(string(podLog))
+	bar.Finish()
+	fmt.Printf("Copied %d bytes.\n", fileSize)
 }
 
 func readPassword() ([]byte, error) {
-	password, _ := term.ReadPassword(int(syscall.Stdin))
-	return password, nil
+	password, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return password, err
 }
 
 func readInput() (string, error) {
