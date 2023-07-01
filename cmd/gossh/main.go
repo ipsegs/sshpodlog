@@ -23,7 +23,7 @@ func main() {
 	server := flag.String("server", "", "<usage> -server <ip address or hostname>")
 	port := flag.Int("port", 22, "<usage -port <port number>")
 	username := flag.String("username", "", "<usege -username <username>")
-	kubectlClusterSwitch := flag.String("cluster", "default", "usage -context <cluster>")
+	kubectlClusterSwitch := flag.String("cluster", "default", "usage -cluster <cluster>")
 	flag.Parse()
 
 	if *server == "" {
@@ -66,14 +66,16 @@ func main() {
 	}
 	defer session.Close()
 
-	fmt.Print("Namespace: ")
-	namespace, err := readInput()
-	if err != nil {
-		log.Fatalf("Namespace does not exist: %v", err)
-		return
-	}
+	//	fmt.Print("Namespace: ")
+	//	namespace, err := readInput()
+	//	if err != nil {
+	//		log.Fatalf("Namespace does not exist: %v", err)
+	//		return
+	//	}
 
-	contextSwitch := fmt.Sprintf("kubectl config use-context %s", *kubectlClusterSwitch)
+	fmt.Println()
+
+	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", *kubectlClusterSwitch)
 	session.Output(contextSwitch)
 	fmt.Printf("Context has been switched to %s\n", *kubectlClusterSwitch)
 
@@ -84,12 +86,65 @@ func main() {
 	}
 	defer session.Close()
 
-	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
-	podList, err := session.Output(listPods)
-	if err != nil {
-		log.Fatalf("Command failed to run in SSH Session: %v", err)
+	// listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
+	// podList, err := session.Output(listPods)
+	// if err != nil {
+	// 	log.Fatalf("Command failed to run in SSH Session: %v", err)
+	// }
+	// fmt.Println(string(podList))
+	var namespace string
+	for {
+		fmt.Print("Enter the namespace: ")
+		namespace, err = readInput()
+		if err != nil {
+			log.Printf("The namespace does not exist: %v\n", err)
+			return
+		}
+
+		session, err = conn.NewSession()
+		if err != nil {
+			log.Printf("Failed to start the session connection: %v\n", err)
+			return
+		}
+
+		defer session.Close()
+
+		checkNamespace := fmt.Sprintln("kubectl get namespace", namespace)
+		_, err = session.CombinedOutput(checkNamespace)
+		if err == nil {
+			break
+		}
+
+		log.Println("Error: Namespace does not exist")
+
+		session, err = conn.NewSession()
+		if err != nil {
+			log.Printf("Unable to start another session connection: %v\n", err)
+			return
+		}
+
+		defer session.Close()
+
+		fmt.Println("Available namespaces:")
+		namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
+		fmt.Println(string(namespaceList))
 	}
-	fmt.Println(string(podList))
+
+	session, err = conn.NewSession()
+	if err != nil {
+		log.Fatalf("Unable to start the session connection: %v", err)
+		return
+	}
+
+	defer session.Close()
+
+	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
+	pods, err := session.Output(listPods)
+	if err != nil {
+		log.Fatalf("Unable to list pods: %v", err)
+		return
+	}
+	fmt.Println(string(pods))
 
 	fmt.Print("Enter pod name: ")
 	podName, err := readInput()
@@ -98,16 +153,18 @@ func main() {
 	}
 	session.Close()
 
-	newSession, err := conn.NewSession()
+	session, err = conn.NewSession()
 	if err != nil {
 		log.Fatalf("Unable to create second SSH connection: %v", err)
 	}
-	defer newSession.Close()
+	defer session.Close()
+
 	logFileName := podName + ".txt"
+	//logFilePath := "logs/" + logFileName
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
-	_, err = newSession.CombinedOutput(getPodLogs)
+	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
-		log.Fatal("Failed to run second command in second SSH connection", err)
+		log.Fatalf("Failed to run second command in second SSH connection: %v", err)
 	}
 
 	sftpClient, err := sftp.NewClient(conn)
@@ -152,12 +209,10 @@ func main() {
 	}
 	defer localFile.Close()
 
-	// Get the file size
 	remoteFileInfo, _ := remoteFile.Stat()
 	fileSize := remoteFileInfo.Size()
 
-	// Create a progress bar
-	bar := progressbar.DefaultBytes(fileSize, "copying")
+	bar := progressbar.DefaultBytes(fileSize, "copying to local")
 
 	_, err = io.Copy(localFile, remoteFile)
 	if err != nil {
@@ -166,7 +221,7 @@ func main() {
 	}
 
 	bar.Finish()
-	filesizeToKb := float64(fileSize/1024)
+	filesizeToKb := float64(fileSize / 1024)
 	fmt.Printf("Copied %.2f kilobytes content.\n", filesizeToKb)
 }
 
