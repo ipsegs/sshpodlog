@@ -24,6 +24,7 @@ func main() {
 	port := flag.Int("port", 22, "<usage -port <port number>")
 	username := flag.String("username", "", "<usege -username <username>")
 	kubectlClusterSwitch := flag.String("cluster", "default", "usage -cluster <cluster>")
+	privateKey := flag.String("key", "", "usage -key <path to the private key file>")
 	flag.Parse()
 
 	if *server == "" {
@@ -50,6 +51,26 @@ func main() {
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	if *privateKey != "" {
+		file, err := os.Open(*privateKey)
+		if err != nil {
+			log.Printf("Unable to open file path: %v", err)
+			return
+		}
+		defer file.Close()
+		privateKeyBytes, err := io.ReadAll(file)
+		if err != nil {
+			log.Printf("unable to read file: %v", err)
+			return
+		}
+		key, err := ssh.ParsePrivateKey(privateKeyBytes)
+		if err != nil {
+			log.Printf("Failed to parse private key: %v", err)
+			return
+		}
+		config.Auth = append(config.Auth, ssh.PublicKeys(key))
 	}
 
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", *server, *port), config)
