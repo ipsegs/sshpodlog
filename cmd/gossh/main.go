@@ -144,6 +144,10 @@ func main() {
 		log.Fatalf("Unable to list pods: %v", err)
 		return
 	}
+	if len(pods) == 0 {
+		log.Println("There are no pods in this namespace")
+		return
+	}
 	fmt.Println(string(pods))
 
 	fmt.Print("Enter pod name: ")
@@ -166,6 +170,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to run second command in second SSH connection: %v", err)
 	}
+	
 
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
@@ -224,6 +229,19 @@ func main() {
 	bar.Finish()
 	filesizeToKb := float64(fileSize / 1024)
 	fmt.Printf("Copied %.2f kilobytes content.\n", filesizeToKb)
+
+	session, err = conn.NewSession()
+	if err != nil {
+		log.Printf("Error: SSH connection cannot be established: %v\n", err)
+		return
+	}
+	defer session.Close()
+
+	rmLogFile := fmt.Sprintf("rm %s",logFileName)
+	_, err = session.CombinedOutput(rmLogFile)
+	if err != nil {
+		log.Printf("Error: command can't be ran: %v", err)
+	}
 }
 
 func readPassword() ([]byte, error) {
