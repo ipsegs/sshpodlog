@@ -39,7 +39,7 @@ func main() {
 	fmt.Print("Enter Password: ")
 	password, _ := readPassword()
 	if password == nil {
-		log.Fatalf("Please enter a password\n")
+		log.Fatalf("Please enter a password")
 		return
 	}
 
@@ -77,7 +77,7 @@ func main() {
 
 	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", *kubectlClusterSwitch)
 	session.Output(contextSwitch)
-	fmt.Printf("Context has been switched to %s\n", *kubectlClusterSwitch)
+	fmt.Printf("in %s cluster\n", *kubectlClusterSwitch)
 
 	session, err = conn.NewSession()
 	if err != nil {
@@ -179,10 +179,11 @@ func main() {
 		homeDrive := os.Getenv("HOMEDRIVE")
 		homePath := os.Getenv("HOMEPATH")
 		homeDir = filepath.Join(homeDrive, homePath)
+
 	} else {
 		homeDir, err = os.UserHomeDir()
 		if err != nil {
-			log.Fatalf("Failed to get user's home directory: %v", err)
+			log.Printf("Failed to get user's home directory: %v", err)
 		}
 	}
 
