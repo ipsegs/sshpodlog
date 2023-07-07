@@ -49,9 +49,21 @@ func main() {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(string(password)),
 		},
+		//Auth: []ssh.AuthMethod {},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+	// var password byte
+	// fmt.Print("Enter Password: ")
+	// if password != 0 {
+	// 	//fmt.Print("Enter Password: ")
+	// 	password, _ := readPassword()
+	// 	if password == nil {
+	// 	log.Fatalf("Please enter a password")
+	// 	return
+	// }
+	// 	config.Auth = append(config.Auth, ssh.Password(string(password)))
+	// }
 
 	if *privateKey != "" {
 		file, err := os.Open(*privateKey)
@@ -60,6 +72,7 @@ func main() {
 			return
 		}
 		defer file.Close()
+
 		privateKeyBytes, err := io.ReadAll(file)
 		if err != nil {
 			log.Printf("unable to read file: %v", err)
@@ -191,7 +204,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to run second command in second SSH connection: %v", err)
 	}
-	
 
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
@@ -258,7 +270,7 @@ func main() {
 	}
 	defer session.Close()
 
-	rmLogFile := fmt.Sprintf("rm %s",logFileName)
+	rmLogFile := fmt.Sprintf("rm %s", logFileName)
 	_, err = session.CombinedOutput(rmLogFile)
 	if err != nil {
 		log.Printf("Error: command can't be ran: %v", err)
