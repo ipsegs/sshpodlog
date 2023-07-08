@@ -7,7 +7,7 @@ This is a command-line tool written in Go that connects to an SSH server, intera
 
 1. Clone the repository:
    ```shell
-   git clone https://github.com/yourusername/sshpodlog.git
+   git clone https://github.com/ipsegs/sshpodlog.git
    ```
 
 2. Navigate to the project directory:
