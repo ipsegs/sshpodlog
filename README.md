@@ -7,12 +7,12 @@ This is a command-line tool written in Go that connects to an SSH server, intera
 
 1. Clone the repository:
    ```shell
-   git clone https://github.com/yourusername/ssh-pod-log-downloader.git
+   git clone https://github.com/yourusername/sshpodlog.git
    ```
 
 2. Navigate to the project directory:
    ```shell
-   cd ssh-pod-log-downloader
+   cd sshpodlog
    ```
 
 3. Run the installation script:
@@ -34,7 +34,7 @@ To use the SSH Pod Log Downloader, follow these steps:
 
 3. Run the executable with the desired command-line arguments. For example:
    ```shell
-   ./ssh-pod-log-downloader -server 192.168.1.100 -port 22 -username myuser -cluster production -key ~/.ssh/id_rsa
+   ./sshpodlog -server 192.168.1.100 -port 22 -username myuser -cluster production -key ~/.ssh/id_rsa
    ```
 
    Replace the arguments with the appropriate values for your SSH server configuration.
@@ -47,5 +47,3 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 This project is licensed under the [MIT License](LICENSE).
 ```
-
-Feel free to customize the README.md file further if needed, adding any additional information or sections that you think are relevant.

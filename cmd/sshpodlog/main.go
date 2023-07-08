@@ -20,27 +20,29 @@ import (
 )
 
 func main() {
-	server := flag.String("server", "", "<usage> -server <ip address or hostname>")
-	port := flag.Int("port", 22, "<usage -port <port number>")
-	username := flag.String("username", "", "<usege -username <username>")
+	//flags for arguments
+	server := flag.String("server", "", "usage -server <ip address or hostname>")
+	port := flag.Int("port", 22, "usage -port <port number>")
+	username := flag.String("username", "", "usege -username <username>")
 	kubectlClusterSwitch := flag.String("cluster", "default", "usage -cluster <cluster>")
 	privateKey := flag.String("key", "", "usage -key <path to the private key file>")
 	flag.Parse()
 
+	//if no server name is provided
 	if *server == "" {
-		log.Fatal("Usage: -server <ip address>")
+		log.Println("Usage: -server <ip address>")
 		return
 	}
 
 	if *username == "" {
-		log.Fatal("Usage: -username <username>")
+		log.Println("Usage: -username <username>")
 		return
 	}
 
 	fmt.Print("Enter Password: ")
 	password, _ := readPassword()
 	if password == nil {
-		log.Fatalf("Please enter a password")
+		log.Println("Please enter a password")
 		return
 	}
 
@@ -53,13 +55,14 @@ func main() {
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+
 	// var password byte
 	// fmt.Print("Enter Password: ")
 	// if password != 0 {
 	// 	//fmt.Print("Enter Password: ")
 	// 	password, _ := readPassword()
 	// 	if password == nil {
-	// 	log.Fatalf("Please enter a password")
+	// 	log.Println("Please enter a password")
 	// 	return
 	// }
 	// 	config.Auth = append(config.Auth, ssh.Password(string(password)))
@@ -99,13 +102,6 @@ func main() {
 		return
 	}
 	defer session.Close()
-
-	//	fmt.Print("Namespace: ")
-	//	namespace, err := readInput()
-	//	if err != nil {
-	//		log.Fatalf("Namespace does not exist: %v", err)
-	//		return
-	//	}
 
 	fmt.Println()
 
@@ -172,6 +168,7 @@ func main() {
 
 	defer session.Close()
 
+	//
 	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
 	pods, err := session.Output(listPods)
 	if err != nil {
@@ -196,9 +193,9 @@ func main() {
 		log.Fatalf("Unable to create second SSH connection: %v", err)
 	}
 	defer session.Close()
-
+	
+	// Name of the pod file name
 	logFileName := podName + ".txt"
-	//logFilePath := "logs/" + logFileName
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
