@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	//flags for arguments
+	//command line arguments
 	server := flag.String("server", "", "usage -server <ip address or hostname>")
 	port := flag.Int("port", 22, "usage -port <port number>")
 	username := flag.String("username", "", "usege -username <username>")
@@ -28,7 +28,7 @@ func main() {
 	privateKey := flag.String("key", "", "usage -key <path to the private key file>")
 	flag.Parse()
 
-	//if no server name is provided
+	//input validation
 	if *server == "" {
 		log.Println("Usage: -server <ip address>")
 		return
@@ -67,7 +67,8 @@ func main() {
 	// }
 	// 	config.Auth = append(config.Auth, ssh.Password(string(password)))
 	// }
-
+	
+	// Load private key if provided
 	if *privateKey != "" {
 		file, err := os.Open(*privateKey)
 		if err != nil {
@@ -89,6 +90,7 @@ func main() {
 		config.Auth = append(config.Auth, ssh.PublicKeys(key))
 	}
 
+	//SSH Server connection
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", *server, *port), config)
 	if err != nil {
 		log.Fatalf("Error: Cannot connect to the server %v", err)
@@ -104,7 +106,8 @@ func main() {
 	defer session.Close()
 
 	fmt.Println()
-
+	
+	//switch kubernetes context, Default is for the default namespace
 	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", *kubectlClusterSwitch)
 	session.Output(contextSwitch)
 	fmt.Printf("in %s cluster\n", *kubectlClusterSwitch)
@@ -122,6 +125,8 @@ func main() {
 	// 	log.Fatalf("Command failed to run in SSH Session: %v", err)
 	// }
 	// fmt.Println(string(podList))
+
+	//Get kubernetes namespace from user
 	var namespace string
 	for {
 		fmt.Print("Enter the namespace: ")
@@ -168,7 +173,7 @@ func main() {
 
 	defer session.Close()
 
-	//
+	//List kubernetes pod within the namespace
 	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
 	pods, err := session.Output(listPods)
 	if err != nil {
@@ -181,6 +186,7 @@ func main() {
 	}
 	fmt.Println(string(pods))
 
+	//Enter pod name from the list provided above
 	fmt.Print("Enter pod name: ")
 	podName, err := readInput()
 	if err != nil {
@@ -194,7 +200,7 @@ func main() {
 	}
 	defer session.Close()
 	
-	// Name of the pod file name
+	// create file name from the pod, using .txt, it can be .log
 	logFileName := podName + ".txt"
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
@@ -202,6 +208,7 @@ func main() {
 		log.Fatalf("Failed to run second command in second SSH connection: %v", err)
 	}
 
+	//create sftp connection
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		log.Println("Failed to create SFTP client:", err)
@@ -209,6 +216,7 @@ func main() {
 	}
 	defer sftpClient.Close()
 
+	//get home directory of the local server
 	var homeDir string
 	if runtime.GOOS == "windows" {
 		homeDrive := os.Getenv("HOMEDRIVE")
@@ -222,6 +230,7 @@ func main() {
 		}
 	}
 
+	//get file path to save the file into the local machin
 	var localFilePath string
 	if runtime.GOOS == "windows" {
 		downloadFolder := filepath.Join(homeDir, "Downloads")
@@ -231,6 +240,7 @@ func main() {
 	}
 	fmt.Println("Location of file on local directory", localFilePath)
 
+	// Open remote file
 	remoteFile, err := sftpClient.Open(logFileName)
 	if err != nil {
 		log.Println("Failed to open remote file:", err)
@@ -238,6 +248,7 @@ func main() {
 	}
 	defer remoteFile.Close()
 
+	//create the file name in the local machine
 	localFile, err := os.Create(localFilePath)
 	if err != nil {
 		log.Println("Failed to create the local file:", err)
@@ -245,11 +256,13 @@ func main() {
 	}
 	defer localFile.Close()
 
+	//file size of the remote file
 	remoteFileInfo, _ := remoteFile.Stat()
 	fileSize := remoteFileInfo.Size()
 
 	bar := progressbar.DefaultBytes(fileSize, "copying to local")
 
+	//copy the file from remote to local
 	_, err = io.Copy(localFile, remoteFile)
 	if err != nil {
 		log.Println("Error copying file:", err)
@@ -258,7 +271,7 @@ func main() {
 
 	bar.Finish()
 	filesizeToKb := float64(fileSize / 1024)
-	fmt.Printf("Copied %.2f kilobytes content.\n", filesizeToKb)
+	fmt.Printf("Copied %f kilobytes content.\n", filesizeToKb)
 
 	session, err = conn.NewSession()
 	if err != nil {
@@ -267,6 +280,7 @@ func main() {
 	}
 	defer session.Close()
 
+	//remove log file from the remote to reduce excesses
 	rmLogFile := fmt.Sprintf("rm %s", logFileName)
 	_, err = session.CombinedOutput(rmLogFile)
 	if err != nil {
@@ -274,6 +288,7 @@ func main() {
 	}
 }
 
+//function to input password without showing it on the terminal
 func readPassword() ([]byte, error) {
 	password, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
@@ -282,6 +297,7 @@ func readPassword() ([]byte, error) {
 	return password, err
 }
 
+//input value but remove spaces and any unnecessary input that can be present.
 func readInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
