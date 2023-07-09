@@ -24,6 +24,22 @@ This is a command-line tool written in Go that connects to an SSH server, intera
 
 4. Once the installation is complete, you will find the built executable file in the project directory.
 
+## Manual Installation Approach
+ Confirm the operating system and architecture(amd or arm) you are compiling for.
+
+1. Compiling for Linux system
+   ```shell
+   GOOS=linux GOARCH=amd64 go build -o sshpodlog-linux cmd/sshpodlog/*
+   ```
+2. Compiling for MacOS system
+   ```shell
+   GOOS=darwin GOARCH=amd64 go build -o sshpodlog-macos cmd/sshpodlog/*
+   ```
+3. Compiling for Windows system.
+   ```shell
+   GOOS=windows GOARCH=amd64 go build -o sshpodlog-windows.exe cmd/sshpodlog/*
+   ```
+
 ## Usage
 
 To use the SSH Pod Log Downloader, follow these steps:

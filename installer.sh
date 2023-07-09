@@ -22,12 +22,19 @@ esac
 # Build and run the executable based on the operating system
 case "$os" in
     linux)
-        go build -o cmd/sshpodlog-linux
+        executable="sshpodlog-linux"
+        go build -o "$executable" cmd/sshpodlog/*
         ;;
     macos)
-        go build -o sshpodlog-macos
+        executable="sshpodlog-macos"
+        go build -o "$executable" cmd/sshpodlog/*
         ;;
     windows)
-        go build -o sshpodlog-windows.exe
+        executable="sshpodlog-windows.exe"
+        go build -o "$executable" cmd/sshpodlog/*
         ;;
 esac
+
+echo "Compiled code created"
+echo "USAGE: ./$executable -server <ip address> -port(default 22) <port number> -username <username> -key(optional) <file path to the private key>"
+echo "optional arguments are port, cluster, key"

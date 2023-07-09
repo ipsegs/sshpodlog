@@ -270,8 +270,8 @@ func main() {
 	}
 
 	bar.Finish()
-	filesizeToKb := float64(fileSize / 1024)
-	fmt.Printf("Copied %f kilobytes content.\n", filesizeToKb)
+	filesizeToKb := fileSize / 1024
+	fmt.Printf("Copied %d kilobytes content.\n", filesizeToKb)
 
 	session, err = conn.NewSession()
 	if err != nil {
