@@ -1,5 +1,5 @@
 ```markdown
-# SSH Pod Log Downloader
+## SSH Pod Log Downloader
 
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
 
