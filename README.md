@@ -6,6 +6,7 @@ This is a command-line tool written in Go that connects to an SSH server, intera
 ## Installation
 
 1. Clone the repository:
+
    ```shell
    git clone https://github.com/ipsegs/sshpodlog.git
    ```
@@ -20,7 +21,7 @@ This is a command-line tool written in Go that connects to an SSH server, intera
    ./install.sh
    ```
 
-   The installation script will prompt you to choose the target operating system for building the executable (Linux, macOS, or Windows). After selecting the operating system, the script will build the executable accordingly.
+   The installation script will automatically detect the target operating system for building the executable (Linux, macOS, or Windows). After selecting the operating system, the script will build the executable accordingly.
 
 4. Once the installation is complete, you will find the built executable file in the project directory.
 
