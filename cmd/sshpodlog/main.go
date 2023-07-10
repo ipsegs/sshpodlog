@@ -67,7 +67,7 @@ func main() {
 	// }
 	// 	config.Auth = append(config.Auth, ssh.Password(string(password)))
 	// }
-	
+
 	// Load private key if provided
 	if *privateKey != "" {
 		file, err := os.Open(*privateKey)
@@ -106,7 +106,7 @@ func main() {
 	defer session.Close()
 
 	fmt.Println()
-	
+
 	//switch kubernetes context, Default is for the default namespace
 	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", *kubectlClusterSwitch)
 	session.Output(contextSwitch)
@@ -199,7 +199,7 @@ func main() {
 		log.Fatalf("Unable to create second SSH connection: %v", err)
 	}
 	defer session.Close()
-	
+
 	// create file name from the pod, using .txt, it can be .log
 	logFileName := podName + ".txt"
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
@@ -288,7 +288,7 @@ func main() {
 	}
 }
 
-//function to input password without showing it on the terminal
+// function to input password without showing it on the terminal
 func readPassword() ([]byte, error) {
 	password, err := term.ReadPassword(int(syscall.Stdin))
 	if err != nil {
@@ -297,7 +297,7 @@ func readPassword() ([]byte, error) {
 	return password, err
 }
 
-//input value but remove spaces and any unnecessary input that can be present.
+// input value but remove spaces and any unnecessary input that can be present.
 func readInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
