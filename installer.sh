@@ -36,5 +36,5 @@ case "$os" in
 esac
 
 echo "Compiled code created"
-echo "USAGE: ./$executable -server <ip address> -port(default 22) <port number> -username <username> -key(optional) <file path to the private key>"
+echo "USAGE: ./$executable -server <ip address> -port(default 22) <port number> -username <username> -cluster <cluster-name> -key(optional) <file path to the private key>"
 echo "optional arguments are port, cluster, key"

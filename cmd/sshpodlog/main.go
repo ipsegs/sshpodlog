@@ -129,6 +129,18 @@ func main() {
 	//Get kubernetes namespace from user
 	var namespace string
 	for {
+		session, err = conn.NewSession()
+		if err != nil {
+			log.Printf("Unable to start another session connection: %v\n", err)
+			return
+		}
+
+		defer session.Close()
+
+		fmt.Println("Available namespaces:")
+		namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
+		fmt.Println(string(namespaceList))
+		
 		fmt.Print("Enter the namespace: ")
 		namespace, err = readInput()
 		if err != nil {
@@ -152,17 +164,17 @@ func main() {
 
 		log.Println("Error: Namespace does not exist")
 
-		session, err = conn.NewSession()
-		if err != nil {
-			log.Printf("Unable to start another session connection: %v\n", err)
-			return
-		}
+		// session, err = conn.NewSession()
+		// if err != nil {
+		// 	log.Printf("Unable to start another session connection: %v\n", err)
+		// 	return
+		// }
 
-		defer session.Close()
+		// defer session.Close()
 
-		fmt.Println("Available namespaces:")
-		namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
-		fmt.Println(string(namespaceList))
+		// fmt.Println("Available namespaces:")
+		// namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
+		// fmt.Println(string(namespaceList))
 	}
 
 	session, err = conn.NewSession()
