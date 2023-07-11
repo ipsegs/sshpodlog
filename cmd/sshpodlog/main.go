@@ -56,18 +56,6 @@ func main() {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	// var password byte
-	// fmt.Print("Enter Password: ")
-	// if password != 0 {
-	// 	//fmt.Print("Enter Password: ")
-	// 	password, _ := readPassword()
-	// 	if password == nil {
-	// 	log.Println("Please enter a password")
-	// 	return
-	// }
-	// 	config.Auth = append(config.Auth, ssh.Password(string(password)))
-	// }
-
 	// Load private key if provided
 	if *privateKey != "" {
 		file, err := os.Open(*privateKey)
@@ -119,13 +107,6 @@ func main() {
 	}
 	defer session.Close()
 
-	// listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
-	// podList, err := session.Output(listPods)
-	// if err != nil {
-	// 	log.Fatalf("Command failed to run in SSH Session: %v", err)
-	// }
-	// fmt.Println(string(podList))
-
 	//Get kubernetes namespace from user
 	var namespace string
 	for {
@@ -163,18 +144,6 @@ func main() {
 		}
 
 		log.Println("Error: Namespace does not exist")
-
-		// session, err = conn.NewSession()
-		// if err != nil {
-		// 	log.Printf("Unable to start another session connection: %v\n", err)
-		// 	return
-		// }
-
-		// defer session.Close()
-
-		// fmt.Println("Available namespaces:")
-		// namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
-		// fmt.Println(string(namespaceList))
 	}
 
 	session, err = conn.NewSession()
