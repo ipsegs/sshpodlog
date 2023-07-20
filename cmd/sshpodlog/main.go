@@ -19,22 +19,33 @@ import (
 	"golang.org/x/term"
 )
 
+type Config struct{
+	Server string
+	Port int
+	Username string
+	KctlCtxSwitch string
+	PrivateKey string
+}
+
 func main() {
+
+	var cfg Config
 	//command line arguments
-	server := flag.String("server", "", "usage -server <ip address or hostname>")
-	port := flag.Int("port", 22, "usage -port <port number>")
-	username := flag.String("username", "", "usege -username <username>")
-	kubectlClusterSwitch := flag.String("cluster", "default", "usage -cluster <cluster>")
-	privateKey := flag.String("key", "", "usage -key <path to the private key file>")
+	flag.StringVar(&cfg.Server, "server", "", "usage -server <ip address or hostname>")
+	flag.IntVar(&cfg.Port, "port", 22, "usage -port <port number>")
+	flag.StringVar(&cfg.Username,"username", "", "usege -username <username>")
+	flag.StringVar(&cfg.KctlCtxSwitch, "cluster", "default", "usage -cluster <cluster>")
+	flag.StringVar(&cfg.PrivateKey, "key", "", "usage -key <path to the private key file>")
 	flag.Parse()
 
+
 	//input validation
-	if *server == "" {
+	if cfg.Server == "" {
 		log.Println("Usage: -server <ip address>")
 		return
 	}
 
-	if *username == "" {
+	if cfg.Username == "" {
 		log.Println("Usage: -username <username>")
 		return
 	}
@@ -47,7 +58,7 @@ func main() {
 	}
 
 	config := &ssh.ClientConfig{
-		User: *username,
+		User: cfg.Username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(string(password)),
 		},
@@ -57,8 +68,8 @@ func main() {
 	}
 
 	// Load private key if provided
-	if *privateKey != "" {
-		file, err := os.Open(*privateKey)
+	if cfg.PrivateKey != "" {
+		file, err := os.Open(cfg.PrivateKey)
 		if err != nil {
 			log.Printf("Unable to open file path: %v", err)
 			return
@@ -79,7 +90,8 @@ func main() {
 	}
 
 	//SSH Server connection
-	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", *server, *port), config)
+	//conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", cfg.Server, cfg.Port), config)
+	conn, err := ssh.Dial("tcp", cfg.fmtSprint(), config)
 	if err != nil {
 		log.Fatalf("Error: Cannot connect to the server %v", err)
 		return
@@ -96,9 +108,9 @@ func main() {
 	fmt.Println()
 
 	//switch kubernetes context, Default is for the default namespace
-	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", *kubectlClusterSwitch)
+	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", cfg.KctlCtxSwitch)
 	session.Output(contextSwitch)
-	fmt.Printf("in %s cluster\n", *kubectlClusterSwitch)
+	fmt.Printf("in %s cluster\n", cfg.KctlCtxSwitch)
 
 	session, err = conn.NewSession()
 	if err != nil {
@@ -287,4 +299,8 @@ func readInput() (string, error) {
 	}
 	input = strings.TrimSpace(input)
 	return input, err
+}
+
+func (cfg *Config) fmtSprint() string {
+	return fmt.Sprintf("%s:%d", cfg.Server, cfg.Port)
 }
