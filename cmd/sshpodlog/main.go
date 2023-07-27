@@ -27,6 +27,10 @@ type Application struct {
 	InfoLog  *log.Logger
 	ErrorLog *log.Logger
 	Config   Config
+	Namespace string
+	// Session *ssh.Session
+	// Conn *ssh.Client
+
 }
 
 func main() {
@@ -47,6 +51,7 @@ func main() {
 		InfoLog:  infoLog,
 		ErrorLog: errorLog,
 		Config:   cfg,
+		
 	}
 
 	//input validation
@@ -114,7 +119,7 @@ func main() {
 
 	fmt.Println()
 
-	//switch kubernetes context, Default is for the default namespace
+	//switch kubernetes context, if no namespace argument is given, it uses the current context
 	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", cfg.KctlCtxSwitch)
 	session.Output(contextSwitch)
 	fmt.Printf("in %s cluster\n", cfg.KctlCtxSwitch)
@@ -125,44 +130,12 @@ func main() {
 		return
 	}
 	defer session.Close()
-
-	//Get kubernetes namespace from user
-	var namespace string
-	for {
-		session, err = conn.NewSession()
-		if err != nil {
-			errorLog.Printf("Unable to start another session connection: %v\n", err)
-			return
-		}
-
-		defer session.Close()
-
-		fmt.Println("Available namespaces:")
-		namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
-		fmt.Println(string(namespaceList))
-
-		fmt.Print("Enter the namespace: ")
-		namespace, err = app.readInput()
-		if err != nil {
-			errorLog.Printf("The namespace does not exist: %v\n", err)
-			return
-		}
-
-		session, err = conn.NewSession()
-		if err != nil {
-			errorLog.Printf("Failed to start the session connection: %v\n", err)
-			return
-		}
-
-		defer session.Close()
-
-		checkNamespace := fmt.Sprintln("kubectl get namespace", namespace)
-		_, err = session.CombinedOutput(checkNamespace)
-		if err == nil {
-			break
-		}
-
-		errorLog.Println("Error: Namespace does not exist")
+	
+	//Get namespace 
+	namespace, err := app.getNamespace(session, conn)
+	if err != nil {
+		errorLog.Fatalf("Unable to get namespace: %v", err)
+		return
 	}
 
 	session, err = conn.NewSession()
@@ -170,7 +143,6 @@ func main() {
 		errorLog.Fatalf("Unable to start the session connection: %v", err)
 		return
 	}
-
 	defer session.Close()
 
 	//List kubernetes pod within the namespace
@@ -192,7 +164,6 @@ func main() {
 	if err != nil {
 		errorLog.Fatalf("Pod does not exist: %v", err)
 	}
-	session.Close()
 
 	session, err = conn.NewSession()
 	if err != nil {
