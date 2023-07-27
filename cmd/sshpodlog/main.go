@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -9,28 +8,25 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
-	"syscall"
 	"time"
 
 	"github.com/pkg/sftp"
 	"github.com/schollz/progressbar/v3"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/term"
 )
 
-type Config struct{
-	Server string
-	Port int
-	Username string
+type Config struct {
+	Server        string
+	Port          int
+	Username      string
 	KctlCtxSwitch string
-	PrivateKey string
+	PrivateKey    string
 }
 
-type Application struct{
-	InfoLog *log.Logger
+type Application struct {
+	InfoLog  *log.Logger
 	ErrorLog *log.Logger
-	Config Config
+	Config   Config
 }
 
 func main() {
@@ -39,7 +35,7 @@ func main() {
 	//command line arguments
 	flag.StringVar(&cfg.Server, "server", "", "usage -server <ip address or hostname>")
 	flag.IntVar(&cfg.Port, "port", 22, "usage -port <port number>")
-	flag.StringVar(&cfg.Username,"username", "", "usege -username <username>")
+	flag.StringVar(&cfg.Username, "username", "", "usege -username <username>")
 	flag.StringVar(&cfg.KctlCtxSwitch, "cluster", "default", "usage -cluster <cluster>")
 	flag.StringVar(&cfg.PrivateKey, "key", "", "usage -key <path to the private key file>")
 	flag.Parse()
@@ -48,9 +44,9 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	app := &Application{
-		InfoLog: infoLog,
+		InfoLog:  infoLog,
 		ErrorLog: errorLog,
-		Config: cfg,
+		Config:   cfg,
 	}
 
 	//input validation
@@ -76,7 +72,6 @@ func main() {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(string(password)),
 		},
-		//Auth: []ssh.AuthMethod {},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
@@ -103,8 +98,6 @@ func main() {
 		config.Auth = append(config.Auth, ssh.PublicKeys(key))
 	}
 
-	//SSH Server connection
-	//conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", cfg.Server, cfg.Port), config)
 	conn, err := ssh.Dial("tcp", app.fmtSprint(), config)
 	if err != nil {
 		errorLog.Fatalf("Error: Cannot connect to the server %v", err)
@@ -147,7 +140,7 @@ func main() {
 		fmt.Println("Available namespaces:")
 		namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
 		fmt.Println(string(namespaceList))
-		
+
 		fmt.Print("Enter the namespace: ")
 		namespace, err = app.readInput()
 		if err != nil {
@@ -293,30 +286,4 @@ func main() {
 	if err != nil {
 		errorLog.Printf("Error: command can't be ran: %v", err)
 	}
-}
-
-// function to input password without showing it on the terminal
-func (app *Application) readPassword() ([]byte, error) {
-	password, err := term.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	return password, err
-}
-
-// input value but remove spaces and any unnecessary input that can be present.
-func (app *Application) readInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		log.Println(err)
-		return "", err
-	}
-	input = strings.TrimSpace(input)
-	return input, err
-}
-
-func (app *Application) fmtSprint() string {
-	return fmt.Sprintf("%s:%d", app.Config.Server, app.Config.Port)
 }
