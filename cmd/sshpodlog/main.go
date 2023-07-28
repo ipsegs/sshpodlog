@@ -6,12 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
-	"runtime"
 	"time"
 
-	"github.com/pkg/sftp"
-	"github.com/schollz/progressbar/v3"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -24,13 +20,10 @@ type Config struct {
 }
 
 type Application struct {
-	InfoLog  *log.Logger
-	ErrorLog *log.Logger
-	Config   Config
+	InfoLog   *log.Logger
+	ErrorLog  *log.Logger
+	Config    Config
 	Namespace string
-	// Session *ssh.Session
-	// Conn *ssh.Client
-
 }
 
 func main() {
@@ -51,7 +44,6 @@ func main() {
 		InfoLog:  infoLog,
 		ErrorLog: errorLog,
 		Config:   cfg,
-		
 	}
 
 	//input validation
@@ -65,14 +57,16 @@ func main() {
 		return
 	}
 
+	//Password Auth
 	fmt.Print("Enter Password: ")
-	password, _ := app.readPassword()
+	password, _ := app.readPassword() 
 	if password == nil {
 		errorLog.Println("Please enter a password")
 		return
 	}
 
-	config := &ssh.ClientConfig{
+	//configure ssh client information
+	sshConfig := &ssh.ClientConfig{
 		User: cfg.Username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(string(password)),
@@ -81,7 +75,7 @@ func main() {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	// Load private key if provided
+	// Load private key Auth if provided
 	if cfg.PrivateKey != "" {
 		file, err := os.Open(cfg.PrivateKey)
 		if err != nil {
@@ -100,161 +94,45 @@ func main() {
 			errorLog.Printf("Failed to parse private key: %v", err)
 			return
 		}
-		config.Auth = append(config.Auth, ssh.PublicKeys(key))
+		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(key))
 	}
 
-	conn, err := ssh.Dial("tcp", app.fmtSprint(), config)
+	//create SSH connection.
+	conn, err := ssh.Dial("tcp", app.fmtSprint(), sshConfig)
 	if err != nil {
 		errorLog.Fatalf("Error: Cannot connect to the server %v", err)
 		return
 	}
 	defer conn.Close()
 
-	session, err := conn.NewSession()
-	if err != nil {
-		log.Fatalf("Error: SSH session failed %v", err)
-		return
+	// This is to switch kubernetes context if the jumper is connected to multi-clusters
+	if err = app.switchContext(conn); err != nil {
+		errorLog.Fatalf("Unable to switch Context, %v", err)
 	}
-	defer session.Close()
 
-	fmt.Println()
-
-	//switch kubernetes context, if no namespace argument is given, it uses the current context
-	contextSwitch := fmt.Sprintf("kubectl config use-context %s\n", cfg.KctlCtxSwitch)
-	session.Output(contextSwitch)
-	fmt.Printf("in %s cluster\n", cfg.KctlCtxSwitch)
-
-	session, err = conn.NewSession()
+	//Get namespace
+	namespace, err := app.getNamespace(conn)
 	if err != nil {
-		errorLog.Fatalf("Error: SSH session failed %v", err)
-		return
-	}
-	defer session.Close()
-	
-	//Get namespace 
-	namespace, err := app.getNamespace(session, conn)
-	if err != nil {
-		errorLog.Fatalf("Unable to get namespace: %v", err)
+		app.ErrorLog.Printf("Unable to get namespace: %v\n", err)
 		return
 	}
 
-	session, err = conn.NewSession()
+	//get pod name
+	logFileName, err := app.podInfo(conn, namespace)
 	if err != nil {
-		errorLog.Fatalf("Unable to start the session connection: %v", err)
-		return
-	}
-	defer session.Close()
-
-	//List kubernetes pod within the namespace
-	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
-	pods, err := session.Output(listPods)
-	if err != nil {
-		errorLog.Fatalf("Unable to list pods: %v", err)
-		return
-	}
-	if len(pods) == 0 {
-		errorLog.Println("There are no pods in this namespace")
-		return
-	}
-	fmt.Println(string(pods))
-
-	//Enter pod name from the list provided above
-	fmt.Print("Enter pod name: ")
-	podName, err := app.readInput()
-	if err != nil {
-		errorLog.Fatalf("Pod does not exist: %v", err)
+		errorLog.Fatalf("Unable to create get Pod: %v \n", err)
 	}
 
-	session, err = conn.NewSession()
-	if err != nil {
-		errorLog.Fatalf("Unable to create second SSH connection: %v", err)
-	}
-	defer session.Close()
-
-	// create file name from the pod, using .txt, it can be .log
-	logFileName := podName + ".txt"
-	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
-	_, err = session.CombinedOutput(getPodLogs)
-	if err != nil {
-		errorLog.Fatalf("Failed to run second command in second SSH connection: %v", err)
-	}
-
-	//create sftp connection
-	sftpClient, err := sftp.NewClient(conn)
-	if err != nil {
-		errorLog.Println("Failed to create SFTP client:", err)
-		return
-	}
-	defer sftpClient.Close()
-
-	//get home directory of the local server
-	var homeDir string
-	if runtime.GOOS == "windows" {
-		homeDrive := os.Getenv("HOMEDRIVE")
-		homePath := os.Getenv("HOMEPATH")
-		homeDir = filepath.Join(homeDrive, homePath)
-
-	} else {
-		homeDir, err = os.UserHomeDir()
-		if err != nil {
-			errorLog.Printf("Failed to get user's home directory: %v", err)
-		}
-	}
-
-	//get file path to save the file into the local machin
-	var localFilePath string
-	if runtime.GOOS == "windows" {
-		downloadFolder := filepath.Join(homeDir, "Downloads")
-		localFilePath = filepath.Join(downloadFolder, logFileName)
-	} else {
-		localFilePath = filepath.Join(homeDir, logFileName)
-	}
-	infoLog.Println("Location of file on local directory", localFilePath)
-
-	// Open remote file
-	remoteFile, err := sftpClient.Open(logFileName)
-	if err != nil {
-		log.Println("Failed to open remote file:", err)
-		return
-	}
-	defer remoteFile.Close()
-
-	//create the file name in the local machine
-	localFile, err := os.Create(localFilePath)
-	if err != nil {
-		errorLog.Println("Failed to create the local file:", err)
-		return
-	}
-	defer localFile.Close()
-
-	//file size of the remote file
-	remoteFileInfo, _ := remoteFile.Stat()
-	fileSize := remoteFileInfo.Size()
-
-	bar := progressbar.DefaultBytes(fileSize, "copying to local")
-
-	//copy the file from remote to local
-	_, err = io.Copy(localFile, remoteFile)
-	if err != nil {
-		errorLog.Println("Error copying file:", err)
+	// Copy file from remote Server to Local
+	if err = app.sftpClientCopy(conn, logFileName); err != nil {
+		errorLog.Fatalf("Unable to copy file: %v", err)
 		return
 	}
 
-	bar.Finish()
-	filesizeToKb := fileSize / 1024
-	fmt.Printf("Copied %d kilobytes content.\n", filesizeToKb)
-
-	session, err = conn.NewSession()
-	if err != nil {
-		errorLog.Printf("Error: SSH connection cannot be established: %v\n", err)
+	// Remove the file from the remote server
+	if err = app.rmFile(conn, logFileName); err != nil {
+		errorLog.Fatalf("Unable to remove file: %v", err)
 		return
 	}
-	defer session.Close()
 
-	//remove log file from the remote to reduce excesses
-	rmLogFile := fmt.Sprintf("rm %s", logFileName)
-	_, err = session.CombinedOutput(rmLogFile)
-	if err != nil {
-		errorLog.Printf("Error: command can't be ran: %v", err)
-	}
 }

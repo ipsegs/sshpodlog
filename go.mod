@@ -1,4 +1,4 @@
-module sshpodlog
+module github.com/ipsegs/sshpodlog
 
 go 1.20
 

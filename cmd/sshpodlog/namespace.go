@@ -6,10 +6,17 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) getNamespace(session *ssh.Session, conn *ssh.Client) (string, error) {
+func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 	var namespace string
 	var err error
 
+	session, err := conn.NewSession()
+	if err != nil {
+		app.ErrorLog.Fatalf("Error: SSH session failed %v", err)
+		return "", err
+	}
+	defer session.Close()
+	
 	fmt.Println("Available namespaces:")
 	namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
 	fmt.Println(string(namespaceList))
