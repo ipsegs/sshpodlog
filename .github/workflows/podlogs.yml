@@ -23,7 +23,16 @@ jobs:
         run: GOOS=windows GOARCH=amd64 go build -v -o podlogswin.exe cmd/sshpodlog/*
 
       - name: Build for Linux
-        run: GOOS=linux GOARCH=amd64 go build -v -o podlogslin cmd/sshpodlog/*
+        run: GOOS=linux GOARCH=amd64 go build -v -o podlogslinux cmd/sshpodlog/*
 
       - name: Build for macOS
         run: GOOS=darwin GOARCH=amd64 go build -o podlogsmac cmd/sshpodlog/*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sshpodlog-binaries
+          path: |
+            podlogswin.exe
+            podlogslinux
+            podlogsmac
