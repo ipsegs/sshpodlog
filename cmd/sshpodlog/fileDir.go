@@ -19,7 +19,7 @@ func (app *Application) fileDir(logFileName string) (string, error) {
 		homeDir, err = os.UserHomeDir()
 		if err != nil {
 			app.ErrorLog.Printf("Failed to get user home directory: %v", err)
-			return "", nil
+			return "", err
 		}
 	}
 

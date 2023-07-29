@@ -33,7 +33,7 @@ func main() {
 	flag.StringVar(&cfg.Server, "server", "", "usage -server <ip address or hostname>")
 	flag.IntVar(&cfg.Port, "port", 22, "usage -port <port number>")
 	flag.StringVar(&cfg.Username, "username", "", "usege -username <username>")
-	flag.StringVar(&cfg.KctlCtxSwitch, "cluster", "default", "usage -cluster <cluster>")
+	flag.StringVar(&cfg.KctlCtxSwitch, "cluster", "current", "usage -cluster <cluster>")
 	flag.StringVar(&cfg.PrivateKey, "key", "", "usage -key <path to the private key file>")
 	flag.Parse()
 
@@ -100,7 +100,7 @@ func main() {
 	//create SSH connection.
 	conn, err := ssh.Dial("tcp", app.fmtSprint(), sshConfig)
 	if err != nil {
-		errorLog.Fatalf("Error: Cannot connect to the server %v", err)
+		errorLog.Fatalf("Error: Cannot connect to the server: %v", err)
 		return
 	}
 	defer conn.Close()

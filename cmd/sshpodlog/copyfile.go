@@ -12,18 +12,13 @@ import (
 
 func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) error {
 
+	//sftp client connections
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		app.ErrorLog.Println("Failed to create SFTP client:", err)
 		return err
 	}
 	defer sftpClient.Close()
-
-	localFilePath, err := app.fileDir(logFileName)
-	if err != nil {
-		app.ErrorLog.Println("Failed to create SFTP client:", err)
-		return err
-	}
 
 	remoteFile, err := sftpClient.Open(logFileName)
 	if err != nil {
@@ -38,7 +33,11 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 	}
 	fileSize := remoteFileInfo.Size()
 
-	bar := progressbar.DefaultBytes(fileSize, "copying to local")
+	localFilePath, err := app.fileDir(logFileName)
+	if err != nil {
+		app.ErrorLog.Println("Failed to create SFTP client:", err)
+		return err
+	}
 
 	//create the file name in the local machine
 	localFile, err := os.Create(localFilePath)
@@ -48,17 +47,17 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 	}
 	defer localFile.Close()
 
+	bar := progressbar.DefaultBytes(fileSize, "copying to local")
+
 	//copy the file from remote to local
 	_, err = io.Copy(localFile, remoteFile)
 	if err != nil {
 		app.ErrorLog.Println("Error copying file:", err)
 		return err
-
 	}
 
 	bar.Finish()
-	filesizeToKb := fileSize / 1024
-	fmt.Printf("Copied %d kilobytes content.\n", filesizeToKb)
+	fmt.Printf("Copied %d kilobytes content.\n", fileSize/1024)
 
 	return nil
 }

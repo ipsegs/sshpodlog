@@ -1,0 +1,29 @@
+name: Build Go code
+
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  build:
+    name: Build for all platforms
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20.5'
+
+      - name: Build for Windows
+        run: GOOS=windows GOARCH=amd64 go build -v -o podlogswin.exe cmd/sshpodlog/*
+
+      - name: Build for Linux
+        run: GOOS=linux GOARCH=amd64 go build -v -o podlogslin cmd/sshpodlog/*
+
+      - name: Build for macOS
+        run: GOOS=darwin GOARCH=amd64 go build -o podlogsmac cmd/sshpodlog/*
