@@ -21,6 +21,5 @@ func (app *Application) rmFile(conn *ssh.Client, logFileName string) error {
 		app.ErrorLog.Printf("Error: File cannot be removed: %v", err)
 		return err
 	}
-
 	return err
 }

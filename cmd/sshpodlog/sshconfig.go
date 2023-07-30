@@ -50,13 +50,5 @@ func (app *Application) sshConfigInfo() (*ssh.ClientConfig, error) {
 		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(key))
 	}
 
-	// //create SSH connection.
-	// conn, err := ssh.Dial("tcp", app.fmtSprint(), sshConfig)
-	// if err != nil {
-	// 	app.ErrorLog.Fatalf("Error: Cannot connect to the server: %v", err)
-	// 	return nil, err
-	// }
-	// defer conn.Close()
-
 	return sshConfig, nil
 }
