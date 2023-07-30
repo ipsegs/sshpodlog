@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	//"time"
 
 	"github.com/pkg/sftp"
 	"github.com/schollz/progressbar/v3"
@@ -26,13 +27,6 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 		return err
 	}
 
-	remoteFileInfo, err := remoteFile.Stat()
-	if err != nil {
-		app.ErrorLog.Println("Unable to get file size", err)
-		return err
-	}
-	fileSize := remoteFileInfo.Size()
-
 	localFilePath, err := app.fileDir(logFileName)
 	if err != nil {
 		app.ErrorLog.Println("Failed to create SFTP client:", err)
@@ -47,16 +41,27 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 	}
 	defer localFile.Close()
 
+	remoteFileInfo, err := remoteFile.Stat()
+	if err != nil {
+		app.ErrorLog.Println("Unable to get file size", err)
+		return err
+	}
+	fileSize := remoteFileInfo.Size()
+
+	// track copy progress
 	bar := progressbar.DefaultBytes(fileSize, "copying to local")
 
+	//startTime := time.Now()
+
 	//copy the file from remote to local
-	_, err = io.Copy(localFile, remoteFile)
+	_, err = io.Copy(io.MultiWriter(localFile, bar), remoteFile)
 	if err != nil {
 		app.ErrorLog.Println("Error copying file:", err)
 		return err
 	}
-
+	// elapsedTime := time.Since(startTime)		//to test download file speed, dependent on internet and other factors like latency
 	bar.Finish()
+
 	fmt.Printf("Copied %d kilobytes content.\n", fileSize/1024)
 
 	return nil

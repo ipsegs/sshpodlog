@@ -7,7 +7,6 @@ import (
 )
 
 func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, error) {
-	
 
 	session, err := conn.NewSession()
 	if err != nil {
@@ -44,7 +43,7 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
-		app.ErrorLog.Printf("Failed to run second command in second SSH connection: %v\n", err)
+		app.ErrorLog.Printf("Failed to get pod logs: %v\n", err)
 		return "", err
 	}
 

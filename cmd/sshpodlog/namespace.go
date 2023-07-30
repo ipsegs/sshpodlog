@@ -16,7 +16,7 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 		return "", err
 	}
 	defer session.Close()
-	
+
 	fmt.Println("Available namespaces:")
 	namespaceList, _ := session.CombinedOutput(fmt.Sprintln("kubectl get ns -o jsonpath='{.items[*].metadata.name}'"))
 	fmt.Println(string(namespaceList))

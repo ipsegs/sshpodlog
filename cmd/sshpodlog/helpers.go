@@ -33,7 +33,6 @@ func (app *Application) readInput() (string, error) {
 	return input, err
 }
 
-
 func (app *Application) fmtSprint() string {
 	return fmt.Sprintf("%s:%d", app.Config.Server, app.Config.Port)
 }

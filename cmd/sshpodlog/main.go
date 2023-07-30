@@ -2,11 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io"
 	"log"
 	"os"
-	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -57,44 +54,11 @@ func main() {
 		return
 	}
 
-	//Password Auth
-	fmt.Print("Enter Password: ")
-	password, _ := app.readPassword() 
-	if password == nil {
-		errorLog.Println("Please enter a password")
+	//create SSH Configuration
+	sshConfig, err := app.sshConfigInfo()
+	if err != nil {
+		errorLog.Fatalf("Error: Cannot connect to the server: %v", err)
 		return
-	}
-
-	//configure ssh client information
-	sshConfig := &ssh.ClientConfig{
-		User: cfg.Username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(string(password)),
-		},
-		Timeout:         5 * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// Load private key Auth if provided
-	if cfg.PrivateKey != "" {
-		file, err := os.Open(cfg.PrivateKey)
-		if err != nil {
-			errorLog.Printf("Unable to open file path: %v", err)
-			return
-		}
-		defer file.Close()
-
-		privateKeyBytes, err := io.ReadAll(file)
-		if err != nil {
-			errorLog.Printf("unable to read file: %v", err)
-			return
-		}
-		key, err := ssh.ParsePrivateKey(privateKeyBytes)
-		if err != nil {
-			errorLog.Printf("Failed to parse private key: %v", err)
-			return
-		}
-		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(key))
 	}
 
 	//create SSH connection.
@@ -120,7 +84,7 @@ func main() {
 	//get pod name
 	logFileName, err := app.podInfo(conn, namespace)
 	if err != nil {
-		errorLog.Fatalf("Unable to create get Pod: %v \n", err)
+		errorLog.Fatalf("Unable to get pod connection: %v \n", err)
 	}
 
 	// Copy file from remote Server to Local
