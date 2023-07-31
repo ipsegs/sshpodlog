@@ -39,7 +39,7 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 	defer session.Close()
 
 	// create file name from the pod, using .txt, it can be .log
-	logFileName := podName + ".txt"
+	logFileName := podName + ".log"
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
