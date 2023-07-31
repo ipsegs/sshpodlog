@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/ssh"
@@ -23,8 +24,8 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 		return "", nil
 	}
 	if len(pods) == 0 {
-		app.ErrorLog.Println("There are no pods in this namespace")
-		return "", nil
+		app.ErrorLog.Println("There are no pods in the namespace:", namespace)
+		return "", errors.New("pods unavailable in namespace")
 	}
 	fmt.Println(string(pods))
 
@@ -34,7 +35,7 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 
 	session, err = conn.NewSession()
 	if err != nil {
-		app.ErrorLog.Printf("Unable to start the session connection: %v\n", err)
+		app.ErrorLog.Printf("Unable to start session: %v\n", err)
 	}
 	defer session.Close()
 
@@ -43,8 +44,8 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
-		app.ErrorLog.Printf("Failed to get pod logs: %v\n", err)
-		return "", err
+		app.ErrorLog.Printf("Failed to get pod logs")
+		return "", errors.New("failed to get pod logs")
 	}
 
 	return logFileName, err

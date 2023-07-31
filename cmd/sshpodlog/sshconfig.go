@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,7 +16,7 @@ func (app *Application) sshConfigInfo() (*ssh.ClientConfig, error) {
 	password, _ := app.readPassword()
 	if password == nil {
 		app.ErrorLog.Println("Please enter a password")
-		return nil, nil
+		return nil, errors.New("please input password")
 	}
 
 	//configure ssh client information

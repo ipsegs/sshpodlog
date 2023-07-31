@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/ssh"
@@ -10,7 +11,7 @@ func (app *Application) switchContext(conn *ssh.Client) error {
 	session, err := conn.NewSession()
 	if err != nil {
 		app.ErrorLog.Printf("Error: SSH session failed: %v\n", err)
-		return err
+		return errors.New("SSH Session failed")
 	}
 	defer session.Close()
 

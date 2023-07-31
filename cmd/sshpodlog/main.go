@@ -84,7 +84,7 @@ func main() {
 	//get pod name
 	logFileName, err := app.podInfo(conn, namespace)
 	if err != nil {
-		errorLog.Fatalf("Unable to get pod connection: %v \n", err)
+		errorLog.Fatalf("Unable to get log file name from pods: %v \n", err)
 	}
 
 	// Copy file from remote Server to Local

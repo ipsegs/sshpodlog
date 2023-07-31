@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/ssh"
@@ -24,9 +25,12 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 		//Get Namespace from User
 		fmt.Print("Enter the namespace: ")
 		namespace, err = app.readInput()
+		if namespace == "" {
+			return "", errors.New("please input namespace")
+		}
 		if err != nil {
 			app.ErrorLog.Printf("The namespace does not exist: %v\n", err)
-			return "", err
+			return "", errors.New("namespace does not exist")
 		}
 
 		session, err = conn.NewSession()
