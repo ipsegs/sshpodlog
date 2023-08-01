@@ -4,7 +4,7 @@
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
 
 ## Binary Download to start using right away
- Download the Binary from the releases Assets to start using right away. 
+ Download the Binary from the Releases Assets to start using right away. 
 
 ## Installation For Each Operating System using Bash script
  n/b   Go must be installed on the system.
