@@ -3,8 +3,11 @@
 
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
 
-## Installation For Each Operating System using Bash script
+## Binary Download to start using right away
+ Download the Binary from the releases Assets to start using right away. 
 
+## Installation For Each Operating System using Bash script
+ n/b   Go must be installed on the system.
 1. Clone the repository:
 
    ```shell
@@ -24,9 +27,6 @@ This is a command-line tool written in Go that connects to an SSH server, intera
    The installation script will ask for the target operating system for building the executable (Linux, macOS, or Windows). After selecting the operating system, the script will build the executable accordingly.
 
 4. Once the installation is complete, you will find the built executable file in the project directory.
-
-## Download Binary to start using
- Download the Binary from the releases Assets to start using right away. 
 
 ## Manual Installation Approach
  Confirm the operating system and architecture(amd or arm) you are compiling for and go has to be installed
