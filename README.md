@@ -3,7 +3,7 @@
 
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
 
-## Installation
+## Installation For Each Operating System using Bash script
 
 1. Clone the repository:
 
@@ -21,15 +21,15 @@ This is a command-line tool written in Go that connects to an SSH server, intera
    ./installer.sh
    ```
 
-   The installation script will automatically detect the target operating system for building the executable (Linux, macOS, or Windows). After selecting the operating system, the script will build the executable accordingly.
+   The installation script will ask for the target operating system for building the executable (Linux, macOS, or Windows). After selecting the operating system, the script will build the executable accordingly.
 
 4. Once the installation is complete, you will find the built executable file in the project directory.
 
-## Another Installation Approach
- Download the Binary from the releases Assets and use right away. 
+## Download Binary to start using
+ Download the Binary from the releases Assets to start using right away. 
 
 ## Manual Installation Approach
- Confirm the operating system and architecture(amd or arm) you are compiling for.
+ Confirm the operating system and architecture(amd or arm) you are compiling for and go has to be installed
 
 1. Compiling for Linux system
    ```shell
@@ -54,7 +54,7 @@ To use the SSH Pod Log Downloader, follow these steps:
 
 3. Run the executable with the desired command-line arguments. For example:
    ```shell
-   sshpodlog-binary -server 192.168.1.100 -port 22 -username myuser -cluster production -key ~/.ssh/id_rsa
+   sshpodlog-windows.exe -server 192.168.1.100 -port 22 -username myuser -cluster production -key ~/.ssh/id_rsa
    ```
 
    Replace the arguments with the appropriate values for your SSH server configuration.
