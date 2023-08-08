@@ -2,6 +2,8 @@ name: Build Go code
 
 on:
   push:
+    tags:
+      - '*'
     branches:
       - master 
 
@@ -19,13 +21,13 @@ jobs:
         with:
           go-version: '1.20.5'
       - name: Build for Windows
-        run: GOOS=windows GOARCH=amd64 go build -v -o podlogswin.exe cmd/sshpodlog/*
+        run: GOOS=windows GOARCH=amd64 go build -v -o podlogswin.exe ./...
 
       - name: Build for Linux
-        run: GOOS=linux GOARCH=amd64 go build -v -o podlogslinux cmd/sshpodlog/*
+        run: GOOS=linux GOARCH=amd64 go build -v -o podlogslinux ./...
 
       - name: Build for macOS
-        run: GOOS=darwin GOARCH=amd64 go build -o podlogsmac cmd/sshpodlog/*
+        run: GOOS=darwin GOARCH=amd64 go build -o podlogsmac ./...
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3

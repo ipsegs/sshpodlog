@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"bufio"
@@ -6,18 +6,20 @@ import (
 	"log"
 	"os"
 	"strings"
-	"syscall"
+	//"syscall"
 
 	"golang.org/x/term"
 )
 
 // function to input password without showing it on the terminal
 func (app *Application) readPassword() ([]byte, error) {
-	password, err := term.ReadPassword(int(syscall.Stdin))
+	// password, err := term.ReadPassword(int(syscall.Stdin))
+	password, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
+	
 	return password, err
 }
 
@@ -34,5 +36,5 @@ func (app *Application) readInput() (string, error) {
 }
 
 func (app *Application) fmtSprint() string {
-	return fmt.Sprintf("%s:%d", app.Config.Server, app.Config.Port)
+	return fmt.Sprintf("%s:%d", app.Cfg.Server, app.Cfg.Port)
 }

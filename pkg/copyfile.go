@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"fmt"
@@ -16,34 +16,34 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 	//sftp client connections
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
-		app.ErrorLog.Println("Failed to create SFTP client:", err)
+		app.App.ErrorLog.Println("Failed to create SFTP client:", err)
 		return err
 	}
 	defer sftpClient.Close()
 
 	remoteFile, err := sftpClient.Open(logFileName)
 	if err != nil {
-		app.ErrorLog.Println("Failed to open remote file:", err)
+		app.App.ErrorLog.Println("Failed to open remote file:", err)
 		return err
 	}
 
 	localFilePath, err := app.fileDir(logFileName)
 	if err != nil {
-		app.ErrorLog.Println("Failed to create SFTP client:", err)
+		app.App.ErrorLog.Println("Failed to create SFTP client:", err)
 		return err
 	}
 
 	//create the file name in the local machine
 	localFile, err := os.Create(localFilePath)
 	if err != nil {
-		app.ErrorLog.Println("Failed to create the local file:", err)
+		app.App.ErrorLog.Println("Failed to create the local file:", err)
 		return err
 	}
 	defer localFile.Close()
 
 	remoteFileInfo, err := remoteFile.Stat()
 	if err != nil {
-		app.ErrorLog.Println("Unable to get file size", err)
+		app.App.ErrorLog.Println("Unable to get file size", err)
 		return err
 	}
 	fileSize := remoteFileInfo.Size()
@@ -56,7 +56,7 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 	//copy the file from remote to local
 	_, err = io.Copy(io.MultiWriter(localFile, bar), remoteFile)
 	if err != nil {
-		app.ErrorLog.Println("Error copying file:", err)
+		app.App.ErrorLog.Println("Error copying file:", err)
 		return err
 	}
 	//elapsedTime := time.Since(startTime)		//to test download file speed, dependent on internet and other factors like latency

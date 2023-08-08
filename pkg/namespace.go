@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 
 	session, err := conn.NewSession()
 	if err != nil {
-		app.ErrorLog.Fatalf("Error: SSH session failed %v", err)
+		app.App.ErrorLog.Fatalf("Error: SSH session failed %v", err)
 		return "", err
 	}
 	defer session.Close()
@@ -26,17 +26,17 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 		fmt.Print("Enter the namespace: ")
 		namespace, err = app.readInput()
 		if namespace == "" {
-			app.ErrorLog.Printf("No namespace provided\n")
+			app.App.ErrorLog.Printf("No namespace provided\n")
 			return "", errors.New("please input namespace")
 		}
 		if err != nil {
-			app.ErrorLog.Printf("The namespace does not exist: %v\n", err)
+			app.App.ErrorLog.Printf("The namespace does not exist: %v\n", err)
 			return "", errors.New("namespace does not exist")
 		}
 
 		session, err = conn.NewSession()
 		if err != nil {
-			app.ErrorLog.Printf("Error: SSH connection cannot be established: %v\n", err)
+			app.App.ErrorLog.Printf("Error: SSH connection cannot be established: %v\n", err)
 			return "", err
 		}
 		defer session.Close()

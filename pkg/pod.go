@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 
 	session, err := conn.NewSession()
 	if err != nil {
-		app.ErrorLog.Printf("Unable to start the session connection: %v\n", err)
+		app.App.ErrorLog.Printf("Unable to start the session connection: %v\n", err)
 		return "", nil
 	}
 	defer session.Close()
@@ -20,11 +20,11 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
 	pods, err := session.Output(listPods)
 	if err != nil {
-		app.ErrorLog.Printf("Unable to list pods: %v\n", err)
+		app.App.ErrorLog.Printf("Unable to list pods: %v\n", err)
 		return "", nil
 	}
 	if len(pods) == 0 {
-		app.ErrorLog.Println("There are no pods in the namespace:", namespace)
+		app.App.ErrorLog.Println("There are no pods in the namespace:", namespace)
 		return "", errors.New("pods unavailable in namespace")
 	}
 	fmt.Println(string(pods))
@@ -35,16 +35,16 @@ func (app *Application) podInfo(conn *ssh.Client, namespace string) (string, err
 
 	session, err = conn.NewSession()
 	if err != nil {
-		app.ErrorLog.Printf("Unable to start session: %v\n", err)
+		app.App.ErrorLog.Printf("Unable to start session: %v\n", err)
 	}
 	defer session.Close()
 
-	// create file name from the pod, using .txt, it can be .log
+	// create file name from the pod name with a .log extension
 	logFileName := podName + ".log"
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)
 	if err != nil {
-		app.ErrorLog.Printf("Failed to get pod logs")
+		app.App.ErrorLog.Printf("Failed to get pod logs")
 		return "", errors.New("failed to get pod logs")
 	}
 

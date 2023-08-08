@@ -1,4 +1,4 @@
-package main
+package pkg
 
 import (
 	"os"
@@ -18,7 +18,7 @@ func (app *Application) fileDir(logFileName string) (string, error) {
 	} else {
 		homeDir, err = os.UserHomeDir()
 		if err != nil {
-			app.ErrorLog.Printf("Failed to get user home directory: %v", err)
+			app.App.ErrorLog.Printf("Failed to get user home directory: %v", err)
 			return "", err
 		}
 	}
@@ -32,6 +32,6 @@ func (app *Application) fileDir(logFileName string) (string, error) {
 	} else {
 		localFilePath = filepath.Join(homeDir, logFileName)
 	}
-	app.InfoLog.Println("Location of file on local directory", localFilePath)
+	app.App.InfoLog.Println("Location of file on local directory", localFilePath)
 	return localFilePath, err
 }
