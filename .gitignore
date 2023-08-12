@@ -18,3 +18,8 @@ _cgo_*
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# configuration files
+*.yaml
+*.json
+*.toml
