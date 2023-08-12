@@ -1,13 +1,14 @@
 
-## SSH Pod Log Downloader
+# SSH Pod Log Downloader
 
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
 
 ## Binary Download to start using right away
- Download the Binary from the Releases Assets to start using right away. 
+Download the Binary from the Releases Assets to start using right away.
 
 ## Installation For Each Operating System using Bash script
- n/b   Go must be installed on the system.
+**Note:** Go must be installed on the system.
+
 1. Clone the repository:
 
    ```shell
@@ -33,15 +34,15 @@ This is a command-line tool written in Go that connects to an SSH server, intera
 
 1. Compiling for Linux system
    ```shell
-   GOOS=linux GOARCH=amd64 go build -o sshpodlog-linux cmd/sshpodlog/*
+   GOOS=linux GOARCH=amd64 go build ./...
    ```
 2. Compiling for MacOS system
    ```shell
-   GOOS=darwin GOARCH=amd64 go build -o sshpodlog-macos cmd/sshpodlog/*
+   GOOS=darwin GOARCH=amd64 go build ./...
    ```
 3. Compiling for Windows system.
    ```shell
-   GOOS=windows GOARCH=amd64 go build -o sshpodlog-windows.exe cmd/sshpodlog/*
+   GOOS=windows GOARCH=amd64 go build ./...
    ```
 
 ## Usage

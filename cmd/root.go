@@ -18,7 +18,7 @@ var flags struct {
 	KctlCtxSwitch string
 	PrivateKey    string
 	Port          int
-	FromFile   string
+	FromFile      string
 }
 
 var rootCmd = &cobra.Command{
@@ -55,7 +55,6 @@ func initConfig() {
 }
 
 func defaultFunction(cmd *cobra.Command, args []string) {
-
 	if cmd.Flag("from-file").Changed {
 		flags.Server = viper.GetString("server")
 		flags.Username = viper.GetString("username")
