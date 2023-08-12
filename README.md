@@ -1,4 +1,4 @@
-
+```markdown
 # SSH Pod Log Downloader
 
 This is a command-line tool written in Go that connects to an SSH server, interacts with Kubernetes using `kubectl`, and downloads logs from a specified pod.
@@ -55,10 +55,24 @@ To use the SSH Pod Log Downloader, follow these steps:
 
 3. Run the executable with the desired command-line arguments. For example:
    ```shell
-   sshpodlog-windows.exe -server 192.168.1.100 -port 22 -username myuser -cluster production -key ~/.ssh/id_rsa
+   sshpodlog-windows.exe --server 192.168.1.100 --port 22 --username myuser --cluster production --key ~/.ssh/id_rsa
    ```
 
    Replace the arguments with the appropriate values for your SSH server configuration.
+
+4. Alternatively, you can use a config file to load configuration settings. Provide the `-f` or `--from-file` flag followed by the path to the config file, the config file extension can be (yaml,json,toml e.t.c.). For example:
+   ```shell
+   sshpodlog --from-file config.yaml
+   ```
+
+   The following flags can be used:
+
+   - `--server` (`-s`): The SSH server address.
+   - `--username` (`-u`): The SSH username.
+   - `--cluster` (`-c`): The Kubernetes context switch.
+   - `--port` (`-p`): The SSH port.
+   - `--key` (`-k`): The path to the SSH private key file.
+   - `--from-file` (`-f`): The configuration file
 
 ## Contributing
 
@@ -67,3 +81,4 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+```
