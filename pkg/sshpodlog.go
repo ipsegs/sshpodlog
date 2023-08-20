@@ -73,7 +73,13 @@ func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) {
 	}
 
 	//get pod name
-	logFileName, err := app.podInfo(conn, namespace)
+	err = app.podInfo(conn, namespace)
+	if err != nil {
+		app.App.ErrorLog.Fatalf("Unable to get logs: %v \n", err)
+	}
+
+	//get filename from pods
+	logFileName, err := app.podFile(conn, namespace)
 	if err != nil {
 		app.App.ErrorLog.Fatalf("Unable to get log file name from pods: %v \n", err)
 	}
