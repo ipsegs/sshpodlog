@@ -62,8 +62,19 @@ To use the SSH Pod Log Downloader, follow these steps:
 
 4. Alternatively, you can use a config file to load configuration settings. Provide the `-f` or `--from-file` flag followed by the path to the config file, the config file extension can be (yaml,json,toml e.t.c.). For example:
    ```shell
-   sshpodlog --from-file config.yaml
+   sshpodlog --from-file config.yaml 
    ```
+
+   Here's how the configuration file looks like for yaml:
+   ```shell
+   # SSH Pod Log Downloader Configuration
+   server: 192.168.1.100
+   port: 22
+   username: myuser
+   cluster: production
+   key: ~/.ssh/id_rsa
+   ```
+
 
    The following flags can be used:
 
