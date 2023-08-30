@@ -27,7 +27,8 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 		namespace, err = app.readInput()
 		if namespace == "" {
 			app.App.ErrorLog.Printf("No namespace provided\n")
-			return "", errors.New("please input namespace")
+			continue
+			//return "", errors.New("please input namespace")
 		}
 		if err != nil {
 			app.App.ErrorLog.Printf("The namespace does not exist: %v\n", err)

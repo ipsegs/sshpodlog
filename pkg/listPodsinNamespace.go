@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) podInfo(conn *ssh.Client, namespace string) (error) {
+func (app *Application) listPodsinNamespace(conn *ssh.Client, namespace string) (error) {
 
 	session, err := conn.NewSession()
 	if err != nil {

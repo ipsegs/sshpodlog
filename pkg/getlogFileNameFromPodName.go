@@ -7,18 +7,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) podFile(conn *ssh.Client, namespace string) (string, error) {
-	//Enter pod name from the list provided above
-	fmt.Print("Enter pod name: ")
-	podName, _ := app.readInput()
-
+func (app *Application) getlogFileNameFromPodName(conn *ssh.Client, namespace string, podName string) (string, error) {
 	session, err := conn.NewSession()
 	if err != nil {
 		app.App.ErrorLog.Printf("Unable to start session: %v\n", err)
 	}
 	defer session.Close()
-
-	// create file name from the pod name with a .log extension
 	logFileName := podName + ".log"
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s > %s", podName, namespace, logFileName)
 	_, err = session.CombinedOutput(getPodLogs)

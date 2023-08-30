@@ -48,21 +48,21 @@ func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) {
 	//create SSH Configuration
 	sshConfig, err := app.sshConfigInfo()
 	if err != nil {
-		app.App.ErrorLog.Fatalf("Error: Cannot connect to the server: %v", err)
+		app.App.ErrorLog.Fatalf("Cannot connect to the server: %v", err)
 		return
 	}
 
 	//create SSH connection.
 	conn, err := ssh.Dial("tcp", app.fmtSprint(), sshConfig)
 	if err != nil {
-		app.App.ErrorLog.Fatalf("Error: Cannot connect to the server: %v", err)
+		app.App.ErrorLog.Fatalf("Cannot connect to the server: %v", err)
 		return
 	}
 	defer conn.Close()
 
 	// This is to switch kubernetes context if the jumper is connected to multi-clusters
 	if err = app.switchContext(conn); err != nil {
-		app.App.ErrorLog.Fatalf("Unable to switch Context, %v", err)
+		app.App.ErrorLog.Fatalf("Unable to switch Kubernetes Context, %v", err)
 	}
 
 	//Get namespace
@@ -73,13 +73,18 @@ func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) {
 	}
 
 	//get pod name
-	err = app.podInfo(conn, namespace)
+	err = app.listPodsinNamespace(conn, namespace)
 	if err != nil {
-		app.App.ErrorLog.Fatalf("Unable to get logs: %v \n", err)
+		app.App.ErrorLog.Fatalf("Unable to get pod logs: %v \n", err)
 	}
 
 	//get filename from pods
-	logFileName, err := app.podFile(conn, namespace)
+	podName, err := app.getpodName(conn, namespace)
+	if err != nil {
+		app.App.ErrorLog.Fatalf("Unable to get pod name: %v \n", err)
+	}
+
+	logFileName, err := app.getlogFileNameFromPodName(conn, namespace, podName)
 	if err != nil {
 		app.App.ErrorLog.Fatalf("Unable to get log file name from pods: %v \n", err)
 	}

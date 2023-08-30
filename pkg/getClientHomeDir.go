@@ -6,8 +6,11 @@ import (
 	"runtime"
 )
 
-func (app *Application) fileDir(logFileName string) (string, error) {
-	//get home directory of the local server
+//get client's home directory
+//get file path to save the file into the local machine
+//logFilepath is created from the client's home directory(Linux or Mac) and logFileName, for Windows, the Documents folder is included.
+func (app *Application) getClientHomeDir(logFileName string) (string, error) {
+	//get client's home directory
 	var homeDir string
 	var err error
 	if runtime.GOOS == "windows" {
@@ -24,10 +27,10 @@ func (app *Application) fileDir(logFileName string) (string, error) {
 	}
 
 	//get file path to save the file into the local machine
+	//logFilepath is created from the client's home directory(Linux or Mac) and logFileName, for Windows, the Documents folder is included.
 	var localFilePath string
-
 	if runtime.GOOS == "windows" {
-		downloadFolder := filepath.Join(homeDir, "Downloads")
+		downloadFolder := filepath.Join(homeDir, "Documents")
 		localFilePath = filepath.Join(downloadFolder, logFileName)
 	} else {
 		localFilePath = filepath.Join(homeDir, logFileName)

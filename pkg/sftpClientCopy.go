@@ -27,7 +27,7 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 		return err
 	}
 
-	localFilePath, err := app.fileDir(logFileName)
+	localFilePath, err := app.getClientHomeDir(logFileName)
 	if err != nil {
 		app.App.ErrorLog.Println("Failed to create SFTP client:", err)
 		return err
@@ -59,7 +59,7 @@ func (app *Application) sftpClientCopy(conn *ssh.Client, logFileName string) err
 		app.App.ErrorLog.Println("Error copying file:", err)
 		return err
 	}
-	//elapsedTime := time.Since(startTime)		//to test download file speed, dependent on internet and other factors like latency
+	//elapsedTime := time.Since(startTime)
 	bar.Finish()
 
 	fmt.Printf("Copied %d kilobytes content.\n", fileSize/1024)
