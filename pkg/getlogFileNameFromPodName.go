@@ -7,10 +7,14 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) getlogFileNameFromPodName(conn *ssh.Client, namespace string, podName string) (string, error) {
+func (app *Application) GetlogFileNameFromPodName(conn *ssh.Client, namespace string) (string, error) {
+	podName, err := app.GetpodName(conn, namespace)
+	if err != nil {
+		app.App.ErrorLog.Printf("Unable to get pod name: %v\n", err)
+	}
 	session, err := conn.NewSession()
 	if err != nil {
-		app.App.ErrorLog.Printf("Unable to start session: %v\n", err)
+		fmt.Printf("Unable to start session: %v\n", err)
 	}
 	defer session.Close()
 	logFileName := podName + ".log"
@@ -20,5 +24,6 @@ func (app *Application) getlogFileNameFromPodName(conn *ssh.Client, namespace st
 		app.App.ErrorLog.Printf("Failed to get pod logs")
 		return "", errors.New("failed to get pod logs")
 	}
+
 	return logFileName, err
 }

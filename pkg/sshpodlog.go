@@ -1,8 +1,6 @@
 package pkg
 
 import (
-	//"flag"
-
 	"log"
 	"os"
 
@@ -12,19 +10,19 @@ import (
 
 // Struct used to create dependency injection
 type Application struct {
-	Cfg data.Config
-	App data.Application
+	Cfg           data.ClientConfig
+	App           data.Application
+	KctlCtxSwitch string
 }
 
+func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) *ssh.Client {
 
-func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) {
-
-	cfgCheck := &data.Config{
+	cfgCheck := &data.ClientConfig{
 		Server:        server,
 		Port:          port,
 		Username:      username,
-		KctlCtxSwitch: kctlCtxSwitch,
 		PrivateKey:    privateKey,
+		KctlCtxSwitch: kctlCtxSwitch,
 	}
 
 	app := &Application{
@@ -37,68 +35,26 @@ func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) {
 	//input validation
 	if server == "" {
 		app.App.ErrorLog.Println("Usage: -server <ip address>")
-		return
+		return nil
 	}
 
 	if username == "" {
 		app.App.ErrorLog.Println("Usage: -username <username>")
-		return
+		return nil
 	}
 
-	//create SSH Configuration
-	sshConfig, err := app.sshConfigInfo()
+	//create SSH Configuration and SSH connection
+	conn, err := app.SshConnectConfig()
 	if err != nil {
 		app.App.ErrorLog.Fatalf("Cannot connect to the server: %v", err)
-		return
+		return nil
 	}
-
-	//create SSH connection.
-	conn, err := ssh.Dial("tcp", app.fmtSprint(), sshConfig)
-	if err != nil {
-		app.App.ErrorLog.Fatalf("Cannot connect to the server: %v", err)
-		return
-	}
-	defer conn.Close()
 
 	// This is to switch kubernetes context if the jumper is connected to multi-clusters
-	if err = app.switchContext(conn); err != nil {
+	if err = app.SwitchContext(conn); err != nil {
 		app.App.ErrorLog.Fatalf("Unable to switch Kubernetes Context, %v", err)
 	}
 
-	//Get namespace
-	namespace, err := app.getNamespace(conn)
-	if err != nil {
-		app.App.ErrorLog.Printf("Unable to get namespace: %v\n", err)
-		return
-	}
-
-	//get pod name
-	err = app.listPodsinNamespace(conn, namespace)
-	if err != nil {
-		app.App.ErrorLog.Fatalf("Unable to get pod logs: %v \n", err)
-	}
-
-	//get filename from pods
-	podName, err := app.getpodName(conn, namespace)
-	if err != nil {
-		app.App.ErrorLog.Fatalf("Unable to get pod name: %v \n", err)
-	}
-
-	logFileName, err := app.getlogFileNameFromPodName(conn, namespace, podName)
-	if err != nil {
-		app.App.ErrorLog.Fatalf("Unable to get log file name from pods: %v \n", err)
-	}
-
-	// Copy file from remote Server to Local
-	if err = app.sftpClientCopy(conn, logFileName); err != nil {
-		app.App.ErrorLog.Fatalf("Unable to copy file: %v", err)
-		return
-	}
-
-	// Remove the file from the remote server
-	if err = app.rmFile(conn, logFileName); err != nil {
-		app.App.ErrorLog.Fatalf("Unable to remove file: %v", err)
-		return
-	}
+	return conn
 
 }

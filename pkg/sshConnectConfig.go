@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) sshConfigInfo() (*ssh.ClientConfig, error) {
+func (app *Application) SshConnectConfig() (*ssh.Client, error) {
 	//Password Auth
 	fmt.Print("Enter Password: ")
 	password, _ := app.readPassword()
@@ -50,6 +50,13 @@ func (app *Application) sshConfigInfo() (*ssh.ClientConfig, error) {
 		}
 		sshConfig.Auth = append(sshConfig.Auth, ssh.PublicKeys(key))
 	}
+	//fmt.Println("testing")
+	//create SSH connection.
+	conn, err := ssh.Dial("tcp", app.FmtSprint(), sshConfig)
+	if err != nil {
+		app.App.ErrorLog.Printf("Cannot connect to the server: %v", err)
+		return nil, err
+	}
 
-	return sshConfig, nil
+	return conn, nil
 }

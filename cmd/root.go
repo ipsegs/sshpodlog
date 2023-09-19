@@ -24,7 +24,7 @@ var flags struct {
 var rootCmd = &cobra.Command{
 	Use:   "sshpodlog",
 	Short: "A tool to manage Kubernetes pod logs",
-	Long:  `A CLI tool designed for efficient management and retrieval of logs from Kubernetes pods. ...`,
+	Long:  `A CLI tool designed for efficient management and retrieval of logs from Kubernetes pods.`,
 	Run:   defaultFunction,
 }
 
@@ -82,6 +82,11 @@ func defaultFunction(cmd *cobra.Command, args []string) {
 			}
 			flags.Port = port
 		}
+	}
+
+	// Check if "cluster flag" is empty, and if so, set it to "current"
+	if flags.KctlCtxSwitch == "" {
+		flags.KctlCtxSwitch = "current"
 	}
 
 	pkg.Sshpodlog(flags.Server, flags.Username, flags.KctlCtxSwitch, flags.PrivateKey, flags.Port)

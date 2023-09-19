@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) listPodsinNamespace(conn *ssh.Client, namespace string) (error) {
+func (app *Application) ListPodsinNamespace(conn *ssh.Client, namespace string) (error) {
 
 	session, err := conn.NewSession()
 	if err != nil {
@@ -17,7 +17,8 @@ func (app *Application) listPodsinNamespace(conn *ssh.Client, namespace string) 
 	defer session.Close()
 
 	//List kubernetes pod within the namespace
-	listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
+	// listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
+	listPods := fmt.Sprintf("kubectl get pods -n %s --output=custom-columns=NAME:.metadata.name,STATUS:.status.phase", namespace)
 	pods, err := session.Output(listPods)
 	if err != nil {
 		app.App.ErrorLog.Printf("Unable to list pods: %v\n", err)

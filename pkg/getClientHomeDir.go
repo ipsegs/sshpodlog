@@ -6,10 +6,10 @@ import (
 	"runtime"
 )
 
-//get client's home directory
-//get file path to save the file into the local machine
-//logFilepath is created from the client's home directory(Linux or Mac) and logFileName, for Windows, the Documents folder is included.
-func (app *Application) getClientHomeDir(logFileName string) (string, error) {
+// get client's home directory
+// get file path to save the file into the local machine
+// logFilepath is created from the client's home directory(Linux or Mac) and logFileName, for Windows, the Documents folder is included.
+func (app *Application) GetClientHomeDir(logFileName string) (string, error) {
 	//get client's home directory
 	var homeDir string
 	var err error
@@ -35,6 +35,5 @@ func (app *Application) getClientHomeDir(logFileName string) (string, error) {
 	} else {
 		localFilePath = filepath.Join(homeDir, logFileName)
 	}
-	app.App.InfoLog.Println("Location of file on local directory", localFilePath)
 	return localFilePath, err
 }

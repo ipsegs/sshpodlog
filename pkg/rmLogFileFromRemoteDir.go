@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) rmFile(conn *ssh.Client, logFileName string) error {
+func (app *Application) RmFile(conn *ssh.Client, logFileName string) error {
 
 	session, err := conn.NewSession()
 	if err != nil {

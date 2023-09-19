@@ -7,13 +7,13 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
+func (app *Application) GetNamespace(conn *ssh.Client) (string, error) {
 	var namespace string
 	var err error
 
 	session, err := conn.NewSession()
 	if err != nil {
-		app.App.ErrorLog.Fatalf("Error: SSH session failed %v", err)
+		app.App.ErrorLog.Printf("Error: SSH session failed %v", err)
 		return "", err
 	}
 	defer session.Close()
@@ -28,8 +28,8 @@ func (app *Application) getNamespace(conn *ssh.Client) (string, error) {
 		if namespace == "" {
 			app.App.ErrorLog.Printf("No namespace provided\n")
 			continue
-			//return "", errors.New("please input namespace")
 		}
+		
 		if err != nil {
 			app.App.ErrorLog.Printf("The namespace does not exist: %v\n", err)
 			return "", errors.New("namespace does not exist")

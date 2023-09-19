@@ -3,17 +3,17 @@ package data
 import (
 	"log"
 )
-type Config struct {
+
+type ClientConfig struct {
 	Server        string
 	Port          int
 	Username      string
-	KctlCtxSwitch string
 	PrivateKey    string
+	KctlCtxSwitch string
 }
 
 type Application struct {
-	InfoLog   *log.Logger
-	ErrorLog  *log.Logger
-	Config    Config
-	Namespace string
+	InfoLog  *log.Logger
+	ErrorLog *log.Logger
+	Config   ClientConfig
 }
