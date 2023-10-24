@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	"github.com/pkg/sftp"
 	"github.com/schollz/progressbar/v3"
@@ -47,20 +48,26 @@ func (app *Application) CopyFileFromRemoteToLocal(conn *ssh.Client, outFile stri
 		return err
 	}
 	fileSize := remoteFileInfo.Size()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
 
-	// track copy progress
-	bar := progressbar.DefaultBytes(fileSize, "Downloading")
+		defer wg.Done()
+		// track copy progress
+		bar := progressbar.DefaultBytes(fileSize, "Downloading")
 
-	//startTime := time.Now()
+		//startTime := time.Now()
 
-	//copy the file from remote to local
-	_, err = io.Copy(io.MultiWriter(localFile, bar), remoteFile)
-	if err != nil {
-		app.App.ErrorLog.Println("Error copying file:", err)
-		return err
-	}
-	//elapsedTime := time.Since(startTime)
-	bar.Finish()
+		//copy the file from remote to local
+		_, err = io.Copy(io.MultiWriter(localFile, bar), remoteFile)
+		if err != nil {
+			app.App.ErrorLog.Println("Error copying file:", err)
+			return
+		}
+		//elapsedTime := time.Since(startTime)
+		bar.Finish()
+	}()
+	wg.Wait()
 
 	fmt.Printf("Copied %d kilobytes content.\n", fileSize/1024)
 

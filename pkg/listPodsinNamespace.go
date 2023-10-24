@@ -18,7 +18,8 @@ func (app *Application) ListPodsinNamespace(conn *ssh.Client, namespace string) 
 
 	//List kubernetes pod within the namespace
 	// listPods := fmt.Sprintf("kubectl get po -n %s -o jsonpath='{.items[*].metadata.name}'", namespace)
-	listPods := fmt.Sprintf("kubectl get pods -n %s --output=custom-columns=NAME:.metadata.name,STATUS:.status.phase", namespace)
+	//listPods := fmt.Sprintf("kubectl get pods -n %s --output=custom-columns=NAME:.metadata.name,STATUS:.status.phase", namespace)
+	listPods := fmt.Sprintf(" kubectl get pods -n %s --output=custom-columns=POD:.metadata.name,CONTAINER_STATE:.status.containerStatuses[*].state", namespace)
 	pods, err := session.Output(listPods)
 	if err != nil {
 		app.App.ErrorLog.Printf("Unable to list pods: %v\n", err)

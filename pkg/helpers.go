@@ -28,11 +28,11 @@ func (app *Application) readInput() (string, error) {
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		log.Println(err)
+		app.App.ErrorLog.Println(err)
 		return "", err
 	}
 	input = strings.TrimSpace(input)
-	return input, err
+	return input, nil
 }
 
 func (app *Application) FmtSprint() string {
