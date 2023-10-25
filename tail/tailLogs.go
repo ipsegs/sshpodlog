@@ -1,4 +1,4 @@
-package terminal
+package tail
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func ShowLogsInTerminal(conn *ssh.Client) error {
+func TailLogsInTerminal(conn *ssh.Client) error {
 	inst := &pkg.Application{}
 
 	namespace, err := inst.GetNamespace(conn)
@@ -40,7 +40,7 @@ func ShowLogsInTerminal(conn *ssh.Client) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
+	getPodLogs := fmt.Sprintf("kubectl logs -f %s -n %s", podName, namespace)
 
 	// Set up standard input, output, and error streams
 	stdin, err := session.StdinPipe()
