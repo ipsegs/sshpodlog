@@ -17,7 +17,7 @@ import (
 var terminalCmd = &cobra.Command{
 	Use:   "terminal",
 	Short: "Outputs logs into terminal",
-	Run: terminalFunction,
+	Run:   terminalFunction,
 }
 
 func init() {
