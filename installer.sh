@@ -30,15 +30,15 @@ esac
 case "$os" in
     linux)
         executable="sshpodlog-linux"
-        GOOS=linux GOARCH=amd64 go build -o "$executable" cmd/sshpodlog/*
+        GOOS=linux GOARCH=amd64 go build -o "$executable" main.go
         ;;
     macos)
         executable="sshpodlog-macos"
-        GOOS=darwin GOARCH=amd64 go build -o "$executable" cmd/sshpodlog/*
+        GOOS=darwin GOARCH=amd64 go build -o "$executable" main.go
         ;;
     windows)
         executable="sshpodlog-windows.exe"
-        GOOS=windows GOARCH=amd64 go build -o "$executable" cmd/sshpodlog/*
+        GOOS=windows GOARCH=amd64 go build -o "$executable" main.go
         ;;
 esac
 

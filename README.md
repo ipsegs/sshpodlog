@@ -83,6 +83,13 @@ The SSH Pod Log Downloader now offers three distinct subcommands, each serving a
    ```shell
    sshpodlog filter -r ERROR -f config-file.yaml
    ```
+4. **Tail Subcommand**: The tail subcommand allows you to watch live logs as they come in to the terminal. 
+Example usage:
+
+```shell
+sshpodlog tail -f config-file.yaml
+```
+
 
    Note that the configuration file can be in YAML, JSON, TOML, or other supported formats.
 
