@@ -37,19 +37,9 @@ func TailLogsInTerminal(conn *ssh.Client) error {
 	}
 	defer session.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-
 	getPodLogs := fmt.Sprintf("kubectl logs -f %s -n %s", podName, namespace)
 
-	// Set up standard input, output, and error streams
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		inst.App.ErrorLog.Printf("Error: Unable to setup stdin: %v \n", err)
-		return err
-	}
-	defer stdin.Close()
-
+	// Set up standard output, and error streams
 	stdout, err := session.StdoutPipe()
 	if err != nil {
 		inst.App.ErrorLog.Printf("Error: Unable to setup stdout: %v \n", err)
@@ -67,6 +57,8 @@ func TailLogsInTerminal(conn *ssh.Client) error {
 		return err
 	}
 
+	var wg sync.WaitGroup
+	wg.Add(1)
 	// Read and process output from standard output and error streams
 	go func() {
 		defer wg.Done()

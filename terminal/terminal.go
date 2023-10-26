@@ -42,14 +42,7 @@ func ShowLogsInTerminal(conn *ssh.Client) error {
 
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
 
-	// Set up standard input, output, and error streams
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		inst.App.ErrorLog.Printf("Error: Unable to setup stdin: %v \n", err)
-		return err
-	}
-	defer stdin.Close()
-
+	// Set up standard output, and error streams
 	stdout, err := session.StdoutPipe()
 	if err != nil {
 		inst.App.ErrorLog.Printf("Error: Unable to setup stdout: %v \n", err)

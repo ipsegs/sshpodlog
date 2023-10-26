@@ -17,8 +17,8 @@ var flags struct {
 	Username      string
 	KctlCtxSwitch string
 	PrivateKey    string
-	Port          int
 	FromFile      string
+	Port          int
 }
 
 var rootCmd = &cobra.Command{

@@ -6,10 +6,10 @@ import (
 
 type ClientConfig struct {
 	Server        string
-	Port          int
 	Username      string
 	PrivateKey    string
 	KctlCtxSwitch string
+	Port          int
 }
 
 type Application struct {
