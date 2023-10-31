@@ -1,8 +1,8 @@
 package terminal
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/ipsegs/sshpodlog/pkg"
@@ -37,12 +37,16 @@ func ShowLogsInTerminal(conn *ssh.Client) error {
 	}
 	defer session.Close()
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-
 	getPodLogs := fmt.Sprintf("kubectl logs %s -n %s", podName, namespace)
 
 	// Set up standard output, and error streams
+	stdin, err := session.StdinPipe()
+	if err != nil {
+		inst.App.ErrorLog.Printf("Error: Unable to setup stdout: %v \n", err)
+		return err
+	}
+	defer stdin.Close()
+
 	stdout, err := session.StdoutPipe()
 	if err != nil {
 		inst.App.ErrorLog.Printf("Error: Unable to setup stdout: %v \n", err)
@@ -56,31 +60,44 @@ func ShowLogsInTerminal(conn *ssh.Client) error {
 	}
 
 	if err := session.Start(getPodLogs); err != nil {
-		inst.App.ErrorLog.Printf("Error: Unable to start command: %v \n", err)
+		inst.App.ErrorLog.Printf("Error: Unable to start retrieving pod logs: %v \n", err)
 		return err
 	}
 
-	// Read and process output from standard output and error streams
-	go func() {
+	const bufferSize = 8096
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+
+	processStream := func(reader io.Reader, wg *sync.WaitGroup) {
 		defer wg.Done()
 
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			line := scanner.Text()
-			fmt.Println(line) // Process each line of the command output here
+		buffer := make([]byte, bufferSize)
+
+		for {
+			bytesRead, err := reader.Read(buffer)
+			if err != nil {
+				if err == io.EOF {
+					return
+				} else {
+					fmt.Printf("Error reading stream: %v\n", err)
+				}
+				return
+			}
+			fmt.Print(string(buffer[:bytesRead]))
 		}
+	}
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	//wg.Add(1)
+	go processStream(stdout, wg)
+	go processStream(stderr, wg)
 
-		scannerErr := bufio.NewScanner(stderr)
-		for scannerErr.Scan() {
-			line := scannerErr.Text()
-			fmt.Println(line) // Process each line of the command error output here
-		}
-	}()
+	// Wait for the command to finish
+	err = session.Wait()
+	if err != nil {
 
-	// sigCh := make(chan os.Signal, 1)
-	// signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
-
-	// <-sigCh
+		return err
+	}
 
 	wg.Wait()
 	return nil

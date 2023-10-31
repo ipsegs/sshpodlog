@@ -1,8 +1,8 @@
 package tail
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/ipsegs/sshpodlog/pkg"
@@ -56,30 +56,55 @@ func TailLogsInTerminal(conn *ssh.Client) error {
 		inst.App.ErrorLog.Printf("Error: Unable to start command: %v \n", err)
 		return err
 	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// Read and process output from standard output and error streams
-	go func() {
+	const bufferSize = 8096
+	processStream := func(reader io.Reader, wg *sync.WaitGroup) {
 		defer wg.Done()
 
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			line := scanner.Text()
-			fmt.Println(line) // Process each line of the command output here
+		buffer := make([]byte, bufferSize)
+
+		for {
+			bytesRead, err := reader.Read(buffer)
+			if err != nil {
+				if err == io.EOF {
+					return
+				} else {
+					fmt.Printf("Error reading stream: %v\n", err)
+				}
+				return
+			}
+			fmt.Print(string(buffer[:bytesRead]))
 		}
+	}
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+	//wg.Add(1)
+	go processStream(stdout, wg)
+	go processStream(stderr, wg)
 
-		scannerErr := bufio.NewScanner(stderr)
-		for scannerErr.Scan() {
-			line := scannerErr.Text()
-			fmt.Println(line) // Process each line of the command error output here
-		}
-	}()
+	// Wait for the command to finish
+	err = session.Wait()
+	if err != nil {
 
-	// sigCh := make(chan os.Signal, 1)
-	// signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+		return err
+	}
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+	// // Read and process output from standard output and error streams
+	// go func() {
+	// 	defer wg.Done()
 
-	// <-sigCh
+	// 	scanner := bufio.NewScanner(stdout)
+	// 	for scanner.Scan() {
+	// 		line := scanner.Text()
+	// 		fmt.Println(line) 
+	// 	}
+
+	// 	scannerErr := bufio.NewScanner(stderr)
+	// 	for scannerErr.Scan() {
+	// 		line := scannerErr.Text()
+	// 		fmt.Println(line) 
+	// 	}
+	// }()
 
 	wg.Wait()
 	return nil
