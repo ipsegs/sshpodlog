@@ -35,6 +35,6 @@ func (app *Application) readInput() (string, error) {
 	return input, nil
 }
 
-func (app *Application) FmtSprint() string {
+func (app *Application) IpPort() string {
 	return fmt.Sprintf("%s:%d", app.Cfg.Server, app.Cfg.Port)
 }

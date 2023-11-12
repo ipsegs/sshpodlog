@@ -79,18 +79,19 @@ func ShowLogsInTerminal(conn *ssh.Client) error {
 				if err == io.EOF {
 					return
 				} else {
-					fmt.Printf("Error reading stream: %v\n", err)
+					fmt.Printf("Error streaming logs: %v\n", err)
 				}
 				return
 			}
 			fmt.Print(string(buffer[:bytesRead]))
 		}
 	}
-	wg := &sync.WaitGroup{}
+	//wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	wg.Add(2)
 	//wg.Add(1)
-	go processStream(stdout, wg)
-	go processStream(stderr, wg)
+	go processStream(stdout, &wg)
+	go processStream(stderr, &wg)
 
 	// Wait for the command to finish
 	err = session.Wait()

@@ -52,7 +52,7 @@ func (app *Application) SshConnectConfig() (*ssh.Client, error) {
 	}
 	//fmt.Println("testing")
 	//create SSH connection.
-	conn, err := ssh.Dial("tcp", app.FmtSprint(), sshConfig)
+	conn, err := ssh.Dial("tcp", app.IpPort(), sshConfig)
 	if err != nil {
 		app.App.ErrorLog.Printf("Cannot connect to the server: %v", err)
 		return nil, err

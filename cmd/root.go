@@ -13,12 +13,12 @@ import (
 )
 
 var flags struct {
-	Server        string
-	Username      string
-	KctlCtxSwitch string
-	PrivateKey    string
-	FromFile      string
-	Port          int
+	server        string
+	username      string
+	kctlCtxSwitch string
+	privateKey    string
+	fromFile      string
+	port          int
 }
 
 var rootCmd = &cobra.Command{
@@ -39,55 +39,55 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	// Global flags
-	rootCmd.PersistentFlags().StringVarP(&flags.Server, "server", "s", "", "SSH server address")
-	rootCmd.PersistentFlags().StringVarP(&flags.Username, "username", "u", "", "SSH username")
-	rootCmd.PersistentFlags().StringVarP(&flags.KctlCtxSwitch, "cluster", "c", "current", "kubectl context switch")
-	rootCmd.PersistentFlags().StringVarP(&flags.PrivateKey, "key", "k", "", "SSH private key path")
-	rootCmd.PersistentFlags().IntVarP(&flags.Port, "port", "p", 22, "SSH port")
-	rootCmd.PersistentFlags().StringVarP(&flags.FromFile, "from-file", "f", "default", "Configuration properties file")
+	rootCmd.PersistentFlags().StringVarP(&flags.server, "server", "s", "", "SSH server address")
+	rootCmd.PersistentFlags().StringVarP(&flags.username, "username", "u", "", "SSH username")
+	rootCmd.PersistentFlags().StringVarP(&flags.kctlCtxSwitch, "cluster", "c", "current", "kubectl context switch")
+	rootCmd.PersistentFlags().StringVarP(&flags.privateKey, "key", "k", "", "SSH private key path")
+	rootCmd.PersistentFlags().IntVarP(&flags.port, "port", "p", 22, "SSH port")
+	rootCmd.PersistentFlags().StringVarP(&flags.fromFile, "from-file", "f", "default", "Configuration properties file")
 }
 
 func initConfig() {
-	if flags.FromFile != "" {
-		viper.SetConfigFile(flags.FromFile)
+	if flags.fromFile != "" {
+		viper.SetConfigFile(flags.fromFile)
 		viper.ReadInConfig()
 	}
 }
 
 func defaultFunction(cmd *cobra.Command, args []string) {
 	if cmd.Flag("from-file").Changed {
-		flags.Server = viper.GetString("server")
-		flags.Username = viper.GetString("username")
-		flags.KctlCtxSwitch = viper.GetString("cluster")
-		flags.PrivateKey = viper.GetString("key")
-		flags.Port = viper.GetInt("port")
+		flags.server = viper.GetString("server")
+		flags.username = viper.GetString("username")
+		flags.kctlCtxSwitch = viper.GetString("cluster")
+		flags.privateKey = viper.GetString("key")
+		flags.port = viper.GetInt("port")
 	} else {
 		// Use the values from command-line flags if provided
 		if ServerFlag := cmd.Flag("server"); ServerFlag != nil && ServerFlag.Changed {
-			flags.Server = ServerFlag.Value.String()
+			flags.server = ServerFlag.Value.String()
 		}
 		if UsernameFlag := cmd.Flag("username"); UsernameFlag != nil && UsernameFlag.Changed {
-			flags.Username = UsernameFlag.Value.String()
+			flags.username = UsernameFlag.Value.String()
 		}
 		if KctlCtxSwitchFlag := cmd.Flag("cluster"); KctlCtxSwitchFlag != nil && KctlCtxSwitchFlag.Changed {
-			flags.KctlCtxSwitch = KctlCtxSwitchFlag.Value.String()
+			flags.kctlCtxSwitch = KctlCtxSwitchFlag.Value.String()
 		}
 		if PrivateKeyFlag := cmd.Flag("key"); PrivateKeyFlag != nil && PrivateKeyFlag.Changed {
-			flags.PrivateKey = PrivateKeyFlag.Value.String()
+			flags.privateKey = PrivateKeyFlag.Value.String()
 		}
 		if PortFlag := cmd.Flag("port"); PortFlag != nil && PortFlag.Changed {
 			port, err := strconv.Atoi(PortFlag.Value.String())
 			if err != nil {
 				log.Printf("Error parsing port: %v", err)
 			}
-			flags.Port = port
+			flags.port = port
 		}
 	}
 
 	// Check if "cluster flag" is empty, and if so, set it to "current"
-	if flags.KctlCtxSwitch == "" {
-		flags.KctlCtxSwitch = "current"
+	if flags.kctlCtxSwitch == "" {
+		flags.kctlCtxSwitch = "current"
 	}
 
-	pkg.Sshpodlog(flags.Server, flags.Username, flags.KctlCtxSwitch, flags.PrivateKey, flags.Port)
+	pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
 }

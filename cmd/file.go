@@ -26,38 +26,38 @@ func init() {
 
 func fileFunction(cmd *cobra.Command, args []string) {
 	if cmd.Flag("from-file").Changed {
-		flags.Server = viper.GetString("server")
-		flags.Username = viper.GetString("username")
-		flags.KctlCtxSwitch = viper.GetString("cluster")
-		flags.PrivateKey = viper.GetString("key")
-		flags.Port = viper.GetInt("port")
+		flags.server = viper.GetString("server")
+		flags.username = viper.GetString("username")
+		flags.kctlCtxSwitch = viper.GetString("cluster")
+		flags.privateKey = viper.GetString("key")
+		flags.port = viper.GetInt("port")
 	} else {
 		// Use the values from command-line flags if provided
 		if ServerFlag := cmd.Flag("server"); ServerFlag != nil && ServerFlag.Changed {
-			flags.Server = ServerFlag.Value.String()
+			flags.server = ServerFlag.Value.String()
 		}
 		if UsernameFlag := cmd.Flag("username"); UsernameFlag != nil && UsernameFlag.Changed {
-			flags.Username = UsernameFlag.Value.String()
+			flags.username = UsernameFlag.Value.String()
 		}
 		if KctlCtxSwitchFlag := cmd.Flag("cluster"); KctlCtxSwitchFlag != nil && KctlCtxSwitchFlag.Changed {
-			flags.KctlCtxSwitch = KctlCtxSwitchFlag.Value.String()
+			flags.kctlCtxSwitch = KctlCtxSwitchFlag.Value.String()
 		}
 		if PrivateKeyFlag := cmd.Flag("key"); PrivateKeyFlag != nil && PrivateKeyFlag.Changed {
-			flags.PrivateKey = PrivateKeyFlag.Value.String()
+			flags.privateKey = PrivateKeyFlag.Value.String()
 		}
 		if PortFlag := cmd.Flag("port"); PortFlag != nil && PortFlag.Changed {
 			port, err := strconv.Atoi(PortFlag.Value.String())
 			if err != nil {
 				log.Printf("Error parsing port: %v", err)
 			}
-			flags.Port = port
+			flags.port = port
 		}
 	}
 
 	//Check if "cluster flag" is empty, and if so, set it to "current"
-	if flags.KctlCtxSwitch == "" {
-		flags.KctlCtxSwitch = "current"
+	if flags.kctlCtxSwitch == "" {
+		flags.kctlCtxSwitch = "current"
 	}
-	conn := pkg.Sshpodlog(flags.Server, flags.Username, flags.KctlCtxSwitch, flags.PrivateKey, flags.Port)
+	conn := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
 	file.GetLogsInFile(conn)
 }
