@@ -14,7 +14,7 @@ import (
 )
 
 var filterflags struct {
-	Filter string
+	isolate string
 }
 
 // filterCmd represents the filter command
@@ -28,7 +28,7 @@ func init() {
 	rootCmd.AddCommand(filterCmd)
 
 	//flag that obtains the value to be filtered
-	filterCmd.Flags().StringVarP(&filterflags.Filter, "filt", "r", "", "SSH username")
+	filterCmd.Flags().StringVarP(&filterflags.isolate, "isolate", "i", "", "SSH username")
 
 }
 
@@ -53,8 +53,8 @@ func filterFunction(cmd *cobra.Command, args []string) {
 		if PrivateKeyFlag := cmd.Flag("key"); PrivateKeyFlag != nil && PrivateKeyFlag.Changed {
 			flags.privateKey = PrivateKeyFlag.Value.String()
 		}
-		if FilterFlag := cmd.Flag("filt"); FilterFlag != nil && FilterFlag.Changed {
-			filterflags.Filter = FilterFlag.Value.String()
+		if FilterFlag := cmd.Flag("isolate"); FilterFlag != nil && FilterFlag.Changed {
+			filterflags.isolate = FilterFlag.Value.String()
 		}
 		if PortFlag := cmd.Flag("port"); PortFlag != nil && PortFlag.Changed {
 			port, err := strconv.Atoi(PortFlag.Value.String())
@@ -70,6 +70,6 @@ func filterFunction(cmd *cobra.Command, args []string) {
 		flags.kctlCtxSwitch = "current"
 	}
 	conn := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
-	filter.FilterLogs(conn, filterflags.Filter)
+	filter.FilterLogs(conn, filterflags.isolate)
 
 }

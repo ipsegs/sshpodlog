@@ -3,6 +3,7 @@ package filter
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"regexp"
 	"sync"
 
@@ -23,12 +24,18 @@ func Match(conn *ssh.Client, logFileName, filter string) error {
 	}
 	defer remoteFile.Close()
 
-	pattern := regexp.MustCompile(filter)
+	pattern, err := regexp.Compile(filter)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var wg sync.WaitGroup
 	var outputMutex sync.Mutex
-
+	const maxTokenSize = 256 * 1024 // 1 MB
 	scanner := bufio.NewScanner(remoteFile)
+	scanner.Buffer(make([]byte, maxTokenSize), maxTokenSize)
+
+	//scanner := bufio.NewScanner(remoteFile)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -126,57 +133,57 @@ func Match(conn *ssh.Client, logFileName, filter string) error {
 // 	return nil
 // }
 
-// // package filter
+// package filter
 
-// // import (
-// // 	"bufio"
-// // 	"fmt"
-// // 	"regexp"
-// // 	"sync"
+// import (
+// 	"bufio"
+// 	"fmt"
+// 	"regexp"
+// 	"sync"
 
-// // 	"github.com/pkg/sftp"
-// // 	"golang.org/x/crypto/ssh"
-// // )
+// 	"github.com/pkg/sftp"
+// 	"golang.org/x/crypto/ssh"
+// )
 
-// // func Match(conn *ssh.Client, logFileName, filter string) error {
-// // 	sftpClient, err := sftp.NewClient(conn)
-// // 	if err != nil {
-// // 		fmt.Printf("Failed to create SFTP client connection: %v\n", err)
-// // 		return err
-// // 	}
-// // 	defer sftpClient.Close()
+// func Match(conn *ssh.Client, logFileName, filter string) error {
+// 	sftpClient, err := sftp.NewClient(conn)
+// 	if err != nil {
+// 		fmt.Printf("Failed to create SFTP client connection: %v\n", err)
+// 		return err
+// 	}
+// 	defer sftpClient.Close()
 
-// // 	remoteFile, err := sftpClient.Open(logFileName)
-// // 	if err != nil {
-// // 		fmt.Printf("Failed to open remote file using sftp: %v\n", err)
-// // 		return err
-// // 	}
-// // 	defer remoteFile.Close()
+// 	remoteFile, err := sftpClient.Open(logFileName)
+// 	if err != nil {
+// 		fmt.Printf("Failed to open remote file using sftp: %v\n", err)
+// 		return err
+// 	}
+// 	defer remoteFile.Close()
 
-// // 	scanner := bufio.NewScanner(remoteFile)
-// // 	pattern := regexp.MustCompile(filter)
+// 	scanner := bufio.NewScanner(remoteFile)
+// 	pattern := regexp.MustCompile(filter)
 
-// // 	var wg sync.WaitGroup
-// // 	for scanner.Scan() {
-// // 		line := scanner.Text()
-// // 		if pattern.MatchString(line) {
-// // 			wg.Add(1)
+// 	var wg sync.WaitGroup
+// 	for scanner.Scan() {
+// 		line := scanner.Text()
+// 		if pattern.MatchString(line) {
+// 			wg.Add(1)
 
-// // 			go func(line string) {
-// // 				defer wg.Done()
-// // 			// Print the matching line to the terminal
-// // 			fmt.Println(line)
-// // 			} (line)
-// // 		}
-// // 	}
+// 			go func(line string) {
+// 				defer wg.Done()
+// 			// Print the matching line to the terminal
+// 			fmt.Println(line)
+// 			} (line)
+// 		}
+// 	}
 
-// // 	if err := scanner.Err(); err != nil {
-// // 		fmt.Printf("Error scanning the remote file: %v\n", err)
-// // 		return err
-// // 	}
+// 	if err := scanner.Err(); err != nil {
+// 		fmt.Printf("Error scanning the remote file: %v\n", err)
+// 		return err
+// 	}
 
-// // 	return err
-// // }
+// 	return err
+// }
 
 // // output filtered logs to a file
 // // package filter

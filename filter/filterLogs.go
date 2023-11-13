@@ -1,11 +1,13 @@
 package filter
 
 import (
+	"log"
+
 	"github.com/ipsegs/sshpodlog/pkg"
 	"golang.org/x/crypto/ssh"
 )
 
-func FilterLogs(conn *ssh.Client, filter string) error{
+func FilterLogs(conn *ssh.Client, isolate string) error {
 	inst := &pkg.Application{}
 
 	namespace, err := inst.GetNamespace(conn)
@@ -35,9 +37,9 @@ func FilterLogs(conn *ssh.Client, filter string) error{
 		return err
 	}
 
-	err = Match(conn, logFileName, filter)
+	err = Match(conn, logFileName, isolate)
 	if err != nil {
-		inst.App.ErrorLog.Printf("Error filtering log file: %v\n", err)
+		log.Printf("Error filtering log file: %v\n", err)
 		return err
 	}
 

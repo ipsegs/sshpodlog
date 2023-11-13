@@ -56,7 +56,7 @@ func TailLogsInTerminal(conn *ssh.Client) error {
 		inst.App.ErrorLog.Printf("Error: Unable to start command: %v \n", err)
 		return err
 	}
-	const bufferSize = 8096
+	const bufferSize = 1024
 	processStream := func(reader io.Reader, wg *sync.WaitGroup) {
 		defer wg.Done()
 

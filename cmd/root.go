@@ -36,9 +36,10 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	// Initialize config file
+	cobra.OnInitialize(initConfigFile)
 
-	// Global flags
+	// initialize global flags
 	rootCmd.PersistentFlags().StringVarP(&flags.server, "server", "s", "", "SSH server address")
 	rootCmd.PersistentFlags().StringVarP(&flags.username, "username", "u", "", "SSH username")
 	rootCmd.PersistentFlags().StringVarP(&flags.kctlCtxSwitch, "cluster", "c", "current", "kubectl context switch")
@@ -47,13 +48,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&flags.fromFile, "from-file", "f", "default", "Configuration properties file")
 }
 
-func initConfig() {
+func initConfigFile() {
 	if flags.fromFile != "" {
 		viper.SetConfigFile(flags.fromFile)
 		viper.ReadInConfig()
 	}
 }
 
+// Root cmd function
 func defaultFunction(cmd *cobra.Command, args []string) {
 	if cmd.Flag("from-file").Changed {
 		flags.server = viper.GetString("server")

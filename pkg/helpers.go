@@ -19,7 +19,6 @@ func (app *Application) readPassword() ([]byte, error) {
 		log.Println(err)
 		return nil, err
 	}
-	
 	return password, err
 }
 
