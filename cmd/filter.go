@@ -21,7 +21,7 @@ var filterflags struct {
 var filterCmd = &cobra.Command{
 	Use:   "filter",
 	Short: "This filters the log by a string before outputting it to the terminal",
-	Run: filterFunction,
+	Run:   filterFunction,
 }
 
 func init() {
@@ -69,7 +69,10 @@ func filterFunction(cmd *cobra.Command, args []string) {
 	if flags.kctlCtxSwitch == "" {
 		flags.kctlCtxSwitch = "current"
 	}
-	conn := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
+	conn, err := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
+	if err != nil {
+		return
+	}
 	filter.FilterLogs(conn, filterflags.isolate)
 
 }

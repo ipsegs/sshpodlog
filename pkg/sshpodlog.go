@@ -15,7 +15,7 @@ type Application struct {
 	KctlCtxSwitch string
 }
 
-func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) *ssh.Client {
+func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) (*ssh.Client, error) {
 
 	cfgCheck := &data.ClientConfig{
 		Server:        server,
@@ -35,26 +35,27 @@ func Sshpodlog(server, username, kctlCtxSwitch, privateKey string, port int) *ss
 	//input validation
 	if server == "" {
 		app.App.ErrorLog.Println("Usage: -server <ip address>")
-		return nil
+		return nil, nil
 	}
 
 	if username == "" {
 		app.App.ErrorLog.Println("Usage: -username <username>")
-		return nil
+		return nil, nil
 	}
 
 	//create SSH Configuration and SSH connection
 	conn, err := app.SshConnectConfig()
 	if err != nil {
-		app.App.ErrorLog.Fatalf("Cannot connect to the server: %v", err)
-		return nil
+		app.App.ErrorLog.Printf("Cannot connect to the server: %v", err)
+		return nil, err
 	}
 
 	// This is to switch kubernetes context if the jumper is connected to multi-clusters
 	if err = app.SwitchContext(conn); err != nil {
-		app.App.ErrorLog.Fatalf("Unable to switch Kubernetes Context, %v", err)
+		app.App.ErrorLog.Printf("Unable to switch Kubernetes Context, %v", err)
+		return nil, err
 	}
 
-	return conn
+	return conn, nil
 
 }

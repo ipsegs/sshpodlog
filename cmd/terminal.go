@@ -59,6 +59,9 @@ func terminalFunction(cmd *cobra.Command, args []string) {
 		flags.kctlCtxSwitch = "current"
 	}
 
-	conn := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
+	conn, err := pkg.Sshpodlog(flags.server, flags.username, flags.kctlCtxSwitch, flags.privateKey, flags.port)
+	if err != nil {
+		return
+	}
 	terminal.ShowLogsInTerminal(conn)
 }
